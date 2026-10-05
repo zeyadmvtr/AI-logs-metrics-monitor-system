@@ -77,8 +77,9 @@ if ($createdOrder) {
 
 # 6. Test Prometheus Metrics
 Assert-Endpoint "Prometheus Metrics (/metrics)" {
-    $res = Invoke-WebRequest -Uri "$BaseUrl/metrics" -Method Get -TimeoutSec 5
+    $res = Invoke-WebRequest -Uri "$BaseUrl/metrics" -Method Get -TimeoutSec 5 -UseBasicParsing
     if ($res.StatusCode -ne 200) { throw "HTTP $($res.StatusCode)" }
+
     $content = $res.Content
     if ($content -notmatch "aiops_backend" -and $content -notmatch "http") {
         throw "Expected Prometheus metric identifiers not found"

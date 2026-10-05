@@ -164,12 +164,59 @@ Execute the one-click build and deployment script:
 
 ---
 
+## Phase 3: Telemetry & Data Pipeline (Prometheus & Logging)
+
+### Overview
+Phase 3 establishes full cluster observability, programmatic telemetry query clients, and a background ingestion worker:
+
+- **Monitoring Stack (`monitoring/`)**:
+  - `kube-prometheus-stack` deploying Prometheus Operator, Prometheus Server, and Grafana.
+  - Tailored `prometheus-values.yaml` (6h retention, lightweight CPU/RAM requests).
+  - ServiceMonitor (`backend-servicemonitor.yaml`) scraping `:8000/metrics` every 10 seconds.
+  - Pre-built Grafana Dashboard (`grafana-dashboard-aiops.json`) visualizing CPU, memory, RPS, error rate %, and chaos events.
+- **Log Aggregation Stack**:
+  - `loki-stack` deploying Grafana Loki and Promtail DaemonSet to ship container stdout JSON logs.
+- **Programmatic Python API Clients (`telemetry/`)**:
+  - `PrometheusClient`: Queries instant (`/api/v1/query`) and range (`/api/v1/query_range`) PromQL metrics (CPU, RAM, error rate %, P95 latency).
+  - `LogStoreClient`: Queries Loki API via LogQL with automatic fallback to `kubectl logs` for maximum reliability.
+- **Background Telemetry Ingestion Worker (`telemetry/ingestion_worker.py`)**:
+  - Continuously polls metric vectors and error logs every 10 seconds.
+  - Generates sliding window feature matrices (`TelemetryBuffer`) feeding Phase 4's AI model.
+  - Renders live telemetry tables in console and exports snapshots to `data/telemetry_latest.json`.
+
+### How to Run Monitoring & Telemetry
+
+#### Step 1: Install Prometheus, Grafana, and Loki via Helm
+```powershell
+.\scripts\install_monitoring.ps1
+```
+
+#### Step 2: Port-Forward Monitoring Services
+```powershell
+.\scripts\port_forward_monitoring.ps1
+```
+- **Prometheus**: [http://localhost:9090](http://localhost:9090)
+- **Grafana**: [http://localhost:3000](http://localhost:3000) (Login: `admin` / `admin`)
+- **Loki**: [http://localhost:3100](http://localhost:3100)
+
+#### Step 3: Run the Telemetry Ingestion Worker
+```powershell
+# Run a single evaluation test cycle:
+python telemetry/ingestion_worker.py --once
+
+# Or run the continuous background poller:
+python telemetry/ingestion_worker.py --interval 10
+```
+
+---
+
 ## Future Roadmap
 
-| Phase | Title | Key Deliverables |
+| Phase | Status | Key Deliverables |
 |---|---|---|
-| **Phase 1** | Local Infrastructure & Microservices | FastAPI, Postgres, Redis, K8s manifests, resource limits, health & chaos APIs |
-| **Phase 2** | CI/CD Pipeline Automation | Jenkins Helm/Docker setup, lint/test, container build & push, automated kubectl deploy |
-| **Phase 3** | Telemetry & Observability Pipeline | kube-prometheus-stack (Prometheus + Grafana), Promtail / Fluent Bit log shipping, API polling |
-| **Phase 4** | AI Anomaly Detection & RCA Engine | Background worker, Isolation Forest / Autoencoder model, log correlation, Slack/Discord alerts |
-| **Phase 5** | Chaos Engineering & Verification | Automated fault injection (`/chaos/*`), validation of alert trigger and remediation recommendation |
+| **Phase 1** | Completed | FastAPI, Postgres, Redis, K8s manifests, resource limits, health & chaos APIs |
+| **Phase 2** | Completed | Jenkinsfile CI/CD pipeline, Docker build/push, K8s dev deploy, HPA & PDB |
+| **Phase 3** | Completed | kube-prometheus-stack, Loki, Promtail, Python API clients, Telemetry Ingestion Worker |
+| **Phase 4** | Next | Unsupervised ML anomaly detection (Isolation Forest), log correlation RCA engine, alerts |
+| **Phase 5** | Planned | End-to-end chaos engineering tests, closed-loop verification, documentation & polish |
+

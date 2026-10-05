@@ -1,0 +1,70 @@
+# ==============================================================================
+# prometheus-values.yaml - Custom values for kube-prometheus-stack Helm chart
+# Optimized for local development clusters (Minikube, Kind, Docker Desktop)
+# ==============================================================================
+
+prometheus:
+  prometheusSpec:
+    # Scrape interval for high-resolution AIOps metric collection
+    scrapeInterval: "10s"
+    evaluationInterval: "10s"
+    
+    # Retention period (keep local storage light)
+    retention: "6h"
+    retentionSize: "2Gi"
+
+    # Automatically discover ServiceMonitors in all namespaces (aiops, dev, default)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+
+    # Resource limits to prevent local cluster resource starvation
+    resources:
+      requests:
+        cpu: "150m"
+        memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+
+    # Enable native pod annotation scraping as an additional fallback
+    podMonitorSelectorNilUsesHelmValues: false
+
+grafana:
+  enabled: true
+  adminPassword: "admin"
+  
+  # Allow anonymous viewing for rapid demo/presentation purposes
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: "Viewer"
+
+  service:
+    type: NodePort
+    nodePort: 30300
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+
+# Disable heavier cluster monitoring components that consume high RAM locally
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

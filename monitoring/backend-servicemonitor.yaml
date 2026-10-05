@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: aiops-backend-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+    app.kubernetes.io/name: aiops-backend
+    app.kubernetes.io/part-of: aiops-platform
+spec:
+  namespaceSelector:
+    matchNames:
+      - aiops
+      - dev
+      - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aiops-backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 10s
+      scrapeTimeout: 5s
