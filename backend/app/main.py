@@ -3,7 +3,7 @@ import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
 
 from app.config import get_settings
 from app.logger import logger
@@ -41,6 +41,7 @@ instrumentator = Instrumentator(
     should_ignore_untemplated=True,
     should_respect_env_var=False,
 )
+instrumentator.add(metrics.default(metric_namespace="aiops", metric_subsystem="backend"))
 instrumentator.instrument(app).expose(app, endpoint=settings.PROMETHEUS_METRICS_PATH)
 
 
