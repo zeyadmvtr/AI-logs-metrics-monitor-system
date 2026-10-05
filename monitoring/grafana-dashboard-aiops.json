@@ -1,0 +1,236 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "AIOps Platform Overview & Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "title": "Active Backend Pods",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count(kube_pod_status_phase{phase='Running', pod=~'aiops-backend.*'})",
+          "legendFormat": "Pods Running"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 15 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "title": "HTTP 5xx Error Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(aiops_backend_http_requests_total{status_code=~'5..'}[1m])) / (sum(rate(aiops_backend_http_requests_total[1m])) > 0) * 100 or vector(0)",
+          "legendFormat": "5xx Error %"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "title": "Total Request Throughput",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(aiops_backend_http_requests_total[1m])) or vector(0)",
+          "legendFormat": "RPS"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "title": "P95 Request Latency",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(aiops_backend_http_request_duration_seconds_bucket[1m])) by (le)) * 1000 or vector(0)",
+          "legendFormat": "p95 (ms)"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Resource Consumption (CPU & Memory Baselines)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 5,
+      "title": "Pod CPU Usage vs Limit (Cores)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{pod=~'aiops-backend.*', container='backend'}[1m])) by (pod)",
+          "legendFormat": "{{pod}} (Current)"
+        },
+        {
+          "expr": "sum(kube_pod_container_resource_limits{pod=~'aiops-backend.*', resource='cpu'}) by (pod)",
+          "legendFormat": "{{pod}} Limit (0.5 Cores)"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth"
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 6,
+      "title": "Pod Memory Working Set vs Limit",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{pod=~'aiops-backend.*', container='backend'}) by (pod)",
+          "legendFormat": "{{pod}} Working Set"
+        },
+        {
+          "expr": "sum(kube_pod_container_resource_limits{pod=~'aiops-backend.*', resource='memory'}) by (pod)",
+          "legendFormat": "{{pod}} Limit (512Mi)"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 102,
+      "title": "HTTP Response Codes & Chaos Indicators",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15
+          },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 7,
+      "title": "HTTP Traffic Breakdown by Status Code",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(aiops_backend_http_requests_total[1m])) by (status_code)",
+          "legendFormat": "HTTP {{status_code}}"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 50
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 8,
+      "title": "Chaos Fault Injections Triggered (/api/v1/chaos/*)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(aiops_backend_http_requests_total{handler=~'.*chaos.*'}[1m])) by (handler)",
+          "legendFormat": "{{handler}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["aiops", "telemetry", "k8s"],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m"]
+  },
+  "timezone": "browser",
+  "title": "AIOps Platform - Telemetry & RCA Monitor",
+  "uid": "aiops-telemetry-dashboard",
+  "version": 1
+}

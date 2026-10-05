@@ -1,0 +1,50 @@
+# ==============================================================================
+# loki-values.yaml - Custom values for grafana/loki-stack Helm chart
+# ==============================================================================
+
+loki:
+  enabled: true
+  persistence:
+    enabled: false
+  config:
+    auth_enabled: false
+    table_manager:
+      retention_deletes_enabled: true
+      retention_period: 24h
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+promtail:
+  enabled: true
+  config:
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+    snippets:
+      pipelineStages:
+        # Automatically parse JSON stdout logs emitted by aiops-backend
+        - json:
+            expressions:
+              timestamp: timestamp
+              level: level
+              service: service
+              message: message
+              trace_id: trace_id
+              chaos_type: chaos_type
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "150m"
+      memory: "128Mi"
+
+fluent-bit:
+  enabled: false
+
+grafana:
+  enabled: false # Handled by kube-prometheus-stack
