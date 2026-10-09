@@ -106,3 +106,5 @@ def root():
         "docs_url": "/docs",
         "metrics_url": settings.PROMETHEUS_METRICS_PATH,
     }
+# CI/CD Auto Trigger Enabled
+# CI/CD Auto Trigger Enabled
