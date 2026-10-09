@@ -48,3 +48,9 @@ htmlcov/
 
 # Environment secrets
 .env
+
+# Large model weights and RCA artifacts
+*.safetensors
+*.lock
+telemetry_rca_model/.cache/
+data/rca_reports/

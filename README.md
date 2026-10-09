@@ -210,6 +210,49 @@ python telemetry/ingestion_worker.py --interval 10
 
 ---
 
+## Phase 4: AI Anomaly Detection & LLM Root Cause Analysis (RCA)
+
+### Overview
+Phase 4 implements automated anomaly detection and an intelligent Root Cause Analysis (RCA) pipeline powered by the fine-tuned Qwen2 LLM (`telemetry_rca_model`):
+
+- **Hybrid Anomaly Detector (`telemetry/anomaly_detector.py`)**:
+  - Unsupervised Machine Learning using `IsolationForest` fitted on steady-state telemetry baselines.
+  - SRE container boundary heuristics evaluating CPU quota exhaustion, memory leak trends, 5xx cascades, and latency degradation.
+- **LLM Inference Engine (`telemetry/llm_inference.py`)**:
+  - Implements the model's exact ChatML template (`<|im_start|>system ... <|im_end|>`).
+  - Correlates Prometheus metric vectors with Promtail/Loki container log traces.
+  - Dual-mode execution: loads fine-tuned weights (`telemetry_rca_model/`) or executes high-fidelity diagnostic reasoning.
+- **Root Cause Analysis (RCA) Engine (`telemetry/rca_engine.py`)**:
+  - Generates comprehensive incident diagnostics: Root cause diagnosis, technical mechanism, imminent risk assessment, telemetry matrix, and exact `kubectl` mitigation runbook commands.
+  - Automatically persists incident reports in JSON and Markdown formats (`data/rca_reports/INC-*.md`).
+  - Integrated into `telemetry/ingestion_worker.py` via `--enable-rca` for live real-time closed-loop alerting.
+
+### How to Run RCA Diagnosis
+
+#### 1. Evaluate Current Telemetry Snapshot
+```powershell
+python telemetry/rca_engine.py --eval
+```
+
+#### 2. Simulate Anomaly Diagnostics & Runbook Generation
+```powershell
+# Simulate memory leak / OOM diagnostic:
+python telemetry/rca_engine.py --anomaly memory_leak
+
+# Simulate HTTP 500 error cascade diagnostic:
+python telemetry/rca_engine.py --anomaly http_500_spike
+
+# Simulate CPU starvation / compute exhaustion:
+python telemetry/rca_engine.py --anomaly cpu_spike
+```
+
+#### 3. Run Ingestion Worker with Live RCA Enabled
+```powershell
+python telemetry/ingestion_worker.py --interval 10 --enable-rca
+```
+
+---
+
 ## Future Roadmap
 
 | Phase | Status | Key Deliverables |
@@ -217,6 +260,7 @@ python telemetry/ingestion_worker.py --interval 10
 | **Phase 1** | Completed | FastAPI, Postgres, Redis, K8s manifests, resource limits, health & chaos APIs |
 | **Phase 2** | Completed | Jenkinsfile CI/CD pipeline, Docker build/push, K8s dev deploy, HPA & PDB |
 | **Phase 3** | Completed | kube-prometheus-stack, Loki, Promtail, Python API clients, Telemetry Ingestion Worker |
-| **Phase 4** | Next | Unsupervised ML anomaly detection (Isolation Forest), log correlation RCA engine, alerts |
-| **Phase 5** | Planned | End-to-end chaos engineering tests, closed-loop verification, documentation & polish |
+| **Phase 4** | Completed | Unsupervised ML anomaly detection (Isolation Forest), fine-tuned LLM RCA engine, automated runbooks |
+| **Phase 5** | Next | End-to-end chaos engineering tests, closed-loop verification, documentation & polish |
+
 

@@ -115,9 +115,31 @@ def main():
     parser = argparse.ArgumentParser(description="AIOps Telemetry Ingestion Worker")
     parser.add_argument("--interval", type=int, default=10, help="Poll interval in seconds")
     parser.add_argument("--once", action="store_true", help="Execute single poll and exit")
+    parser.add_argument("--enable-rca", action="store_true", help="Enable automatic LLM Root Cause Analysis on anomalies")
     args = parser.parse_args()
 
-    worker = TelemetryIngestionWorker(poll_interval=args.interval)
+    on_batch_cb = None
+    if args.enable_rca:
+        try:
+            from telemetry.rca_engine import RCAEngine
+            rca_engine = RCAEngine()
+
+            def rca_callback(df: pd.DataFrame, error_logs: list):
+                if df is not None and not df.empty:
+                    latest = df.iloc[-1].to_dict()
+                    rep = rca_engine.diagnose(latest, recent_logs=error_logs, history_df=df)
+                    if rep.get("is_anomaly"):
+                        print("\n" + "!" * 58)
+                        print(f" [AIOPS RCA ALERT] {rep.get('severity')} - {rep.get('root_cause')}")
+                        print(f" Incident: {rep.get('incident_id')} | Report saved to data/rca_reports/")
+                        print("!" * 58 + "\n")
+
+            on_batch_cb = rca_callback
+            logger.info("AIOps RCA Engine callback registered.")
+        except Exception as e:
+            logger.warning(f"Could not initialize RCA Engine callback: {e}")
+
+    worker = TelemetryIngestionWorker(poll_interval=args.interval, on_batch_callback=on_batch_cb)
 
     if args.once:
         logger.info("Executing single telemetry polling cycle (--once)...")
