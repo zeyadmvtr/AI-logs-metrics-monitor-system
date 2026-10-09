@@ -25,6 +25,16 @@ class TelemetrySettings(BaseSettings):
     # Output storage
     SNAPSHOT_DIR: str = "data"
 
+    # Automated Email Alert Dispatcher configuration
+    ENABLE_EMAIL_ALERTS: bool = False
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "aiops-alerts@monitoring.internal"
+    ALERT_RECIPIENTS: str = ""
+    ALERT_COOLDOWN_SECONDS: int = 300
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_prefix="TELEMETRY_",

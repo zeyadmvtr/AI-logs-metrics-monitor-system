@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from telemetry.config import get_telemetry_settings
 from telemetry.anomaly_detector import AnomalyDetector, AnomalyReport
 from telemetry.llm_inference import LLMRCAInference
+from telemetry.email_dispatcher import EmailAlertDispatcher
 
 logging.basicConfig(
     level=logging.INFO,
@@ -45,6 +46,7 @@ class RCAEngine:
 
         self.detector = AnomalyDetector()
         self.llm = LLMRCAInference(model_dir=model_dir)
+        self.email_dispatcher = EmailAlertDispatcher()
 
         # Train baseline if historical dataset exists
         dataset_path = os.path.join(self.settings.SNAPSHOT_DIR, "telemetry_dataset.csv")
@@ -99,9 +101,10 @@ class RCAEngine:
             "engine_source": llm_output.get("source", "rca_engine"),
         }
 
-        # 4. Save to disk if anomaly flagged
+        # 4. Save to disk and dispatch email alert if anomaly flagged
         if anomaly_report.is_anomaly:
             self.save_report(report)
+            self.email_dispatcher.send_rca_alert(report)
 
         return report
 
