@@ -63,6 +63,8 @@ class RCAEngine:
         current_metrics: Dict[str, Any],
         recent_logs: Optional[List[Dict[str, Any]]] = None,
         history_df: Optional[pd.DataFrame] = None,
+        persist_incident: bool = True,
+        dispatch_email: bool = True,
     ) -> Dict[str, Any]:
         """Performs full anomaly evaluation and LLM RCA diagnosis."""
         recent_logs = recent_logs or []
@@ -98,13 +100,16 @@ class RCAEngine:
             "recent_logs_inspected": len(recent_logs),
             "immediate_mitigation": llm_output.get("immediate_mitigation", []),
             "permanent_resolution": llm_output.get("permanent_resolution", []),
+            "prompt_used": llm_output.get("prompt_used", ""),
+            "model_info": llm_output.get("model_info", {}),
             "engine_source": llm_output.get("source", "rca_engine"),
         }
 
-        # 4. Save to disk and dispatch email alert if anomaly flagged
-        if anomaly_report.is_anomaly:
+        # 4. Save to disk and dispatch email alert if anomaly flagged and requested
+        if anomaly_report.is_anomaly and persist_incident:
             self.save_report(report)
-            self.email_dispatcher.send_rca_alert(report)
+            if dispatch_email:
+                self.email_dispatcher.send_rca_alert(report)
 
         return report
 
