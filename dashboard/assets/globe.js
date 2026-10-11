@@ -199,15 +199,28 @@ class HoloGlobeEngine {
 
   resize() {
     if (!this.canvas) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
+    const parent = this.canvas.parentElement;
+    const rect = parent ? parent.getBoundingClientRect() : { width: 0, height: 0 };
+    const w = rect.width > 20 ? rect.width : (window.innerWidth || 600);
+    const h = rect.height > 20 ? rect.height : (window.innerHeight || 330);
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = rect.width * dpr;
-    this.canvas.height = rect.height * dpr;
-    this.ctx.scale(dpr, dpr);
-    this.displayWidth = rect.width;
-    this.displayHeight = rect.height;
-    this.centerX = this.displayWidth / 2;
-    this.centerY = this.displayHeight / 2;
+
+    this.canvas.width = Math.floor(w * dpr);
+    this.canvas.height = Math.floor(h * dpr);
+
+    if (this.ctx) {
+      if (typeof this.ctx.resetTransform === 'function') {
+        this.ctx.resetTransform();
+      } else {
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      }
+      this.ctx.scale(dpr, dpr);
+    }
+
+    this.displayWidth = w;
+    this.displayHeight = h;
+    this.centerX = w / 2;
+    this.centerY = h / 2;
   }
 
   latLonTo3D(lat, lon, r) {

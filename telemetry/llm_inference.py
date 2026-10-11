@@ -30,10 +30,10 @@ class LLMRCAInference:
         """Constructs prompt using the model's exact ChatML template (Qwen2)."""
         if not system_prompt:
             system_prompt = (
-                "You are an expert AIOps Site Reliability Engineering (SRE) AI Assistant. "
+                "You are an expert AIOps Site Reliability Engineering (SRE) AI Assistant.\n"
                 "Your role is to perform Root Cause Analysis (RCA) on anomalous telemetry "
-                "metrics and error logs from a microservices application on Kubernetes. "
-                "Analyze the inputs and provide: \n"
+                "metrics and error logs from a microservices application on Kubernetes.\n"
+                "Analyze the inputs and provide:\n"
                 "1. Root Cause Identification\n"
                 "2. Technical Mechanism\n"
                 "3. Imminent Risk Assessment\n"
@@ -61,8 +61,8 @@ class LLMRCAInference:
         )
 
         prompt = (
-            f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
-            f"<|im_start|>user\n{user_content}<|im_end|>\n"
+            f"<|im_start|>system\n{system_prompt.strip()}\n<|im_end|>\n"
+            f"<|im_start|>user\n{user_content.strip()}\n<|im_end|>\n"
             f"<|im_start|>assistant\n"
         )
         return prompt

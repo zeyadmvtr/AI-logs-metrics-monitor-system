@@ -834,15 +834,23 @@ with tab_overview:
         <script>
         {globe_js_code}
 
-        // Initialize engine with dynamic cluster health
-        window.addEventListener('DOMContentLoaded', () => {{
+        // Initialize engine with dynamic cluster health immediately or upon ready
+        function initHoloGlobe() {{
           const engine = new HoloGlobeEngine('holoGlobeCanvas');
           if (engine && engine.clusters && engine.clusters.length > 0) {{
             engine.clusters[0].status = '{us_status}';
             engine.clusters[0].color = '{us_color}';
             engine.clusters[0].latency = '{us_lat}';
           }}
-        }});
+        }}
+
+        if (document.readyState === 'loading') {{
+          document.addEventListener('DOMContentLoaded', initHoloGlobe);
+        }} else {{
+          initHoloGlobe();
+        }}
+        // Also trigger resize after short delay to ensure iframe layout dimensions settled
+        setTimeout(initHoloGlobe, 120);
         </script>
         </body>
         </html>
@@ -1668,7 +1676,18 @@ with tab_llm:
         </div>
         """)
 
-    st.markdown("#### 💬 **Live ChatML Prompt Generation Inspector**")
+    st.html("""
+    <div style="margin: 28px 0 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px;">💬 Live ChatML Prompt Generation Inspector</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Interactive inspection of the exact token stream and ChatML role delimiters fed into Qwen2-7B.</p>
+            </div>
+            <span class="badge beacon-cyan">Qwen2 ChatML Template</span>
+        </div>
+    </div>
+    """)
+
     prompt_sample = engine.llm.build_chatml_prompt(
         current_metrics,
         recent_logs=[
@@ -1677,7 +1696,143 @@ with tab_llm:
         ],
         anomaly_type=rca_report.get("anomaly_type", "normal")
     )
-    st.code(prompt_sample, language="markdown")
+
+    prompt_tab_visual, prompt_tab_raw, prompt_tab_tokens = st.tabs([
+        "🎨 Visual Dialogue Breakdown",
+        "⚡ Verbatim ChatML Stream",
+        "📊 Tokenizer & Attention Context"
+    ])
+
+    with prompt_tab_visual:
+        # 1. System Role Card
+        st.html("""
+        <div class="saas-card" style="padding: 16px 20px; margin-bottom: 14px; border-left: 4px solid #38bdf8;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge beacon-cyan">SYSTEM ROLE</span>
+                    <code style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">&lt;|im_start|&gt;system</code>
+                </div>
+                <code style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; padding: 2px 6px; border-radius: 4px; font-size: 11px;">Token ID: 151644</code>
+            </div>
+            <div style="background: rgba(0, 0, 0, 0.35); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #cbd5e1; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">
+                You are an expert AIOps Site Reliability Engineering (SRE) AI Assistant.<br>
+                Your role is to perform Root Cause Analysis (RCA) on anomalous telemetry metrics and error logs from a microservices application on Kubernetes.<br>
+                Analyze the inputs and provide:<br>
+                1. Root Cause Identification &nbsp;·&nbsp; 2. Technical Mechanism &nbsp;·&nbsp; 3. Imminent Risk Assessment<br>
+                4. Immediate Mitigation Action &nbsp;·&nbsp; 5. Long-term Resolution
+            </div>
+            <div style="text-align: right; margin-top: 8px;">
+                <code style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; padding: 2px 8px; border-radius: 4px; font-size: 12px;">&lt;|im_end|&gt;</code>
+            </div>
+        </div>
+        """)
+
+        # 2. User Telemetry Card
+        cat_badge = rca_report.get('anomaly_type', 'NORMAL').upper()
+        cat_color = '#f43f5e' if is_anomaly else '#10b981'
+        cat_beacon = 'beacon-rose' if is_anomaly else 'beacon-emerald'
+
+        st.html(f"""
+        <div class="saas-card" style="padding: 16px 20px; margin-bottom: 14px; border-left: 4px solid {cat_color};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge {cat_beacon}">USER INPUT</span>
+                    <code style="background: rgba(244, 63, 94, 0.15); color: #fb7185; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">&lt;|im_start|&gt;user</code>
+                </div>
+                <span style="font-size: 12px; color: {cat_color}; font-weight: 700;">Live Telemetry Payload · {cat_badge}</span>
+            </div>
+            <div style="background: rgba(0, 0, 0, 0.35); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px;">
+                <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">### OBSERVED TELEMETRY ANOMALY:</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px;">
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">CPU Utilization</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">{current_metrics.get('cpu_cores', 0.0):.4f} cores</div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">Memory Working Set</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">{current_metrics.get('memory_mb', 0.0):.1f} MB / 512 MB</div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">Request Rate</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">{current_metrics.get('request_rate_rps', 0.0):.1f} req/s</div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">HTTP 5xx Errors</div>
+                        <div style="font-size: 14px; font-weight: 700; color: {'#f43f5e' if current_metrics.get('error_rate_pct', 0) > 1 else '#10b981'};">{current_metrics.get('error_rate_pct', 0.0):.1f}%</div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">P95 Latency</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">{current_metrics.get('p95_latency_ms', 0.0):.1f} ms</div>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 8px 12px;">
+                        <div style="font-size: 11px; color: var(--text-muted);">Active Pods</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #fff;">{current_metrics.get('active_pods', 1)} replicas</div>
+                    </div>
+                </div>
+                <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">### CORRELATED LOG TRACES:</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #94a3b8; line-height: 1.5; background: #05070d; border-radius: 6px; padding: 8px 12px;">
+                    <div>[{time.strftime('%H:%M:%S')}] [WARNING] High allocation detected in container memory pool.</div>
+                    <div>[{time.strftime('%H:%M:%S')}] [ERROR] Health check degraded: pod responding &gt; 300ms.</div>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 8px;">
+                <code style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; padding: 2px 8px; border-radius: 4px; font-size: 12px;">&lt;|im_end|&gt;</code>
+            </div>
+        </div>
+        """)
+
+        # 3. Assistant Target Card & Live Generation Button
+        st.html("""
+        <div class="saas-card" style="padding: 16px 20px; border-left: 4px solid #34d399;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="badge beacon-emerald">TARGET GENERATION</span>
+                    <code style="background: rgba(52, 211, 153, 0.15); color: #34d399; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">&lt;|im_start|&gt;assistant</code>
+                </div>
+                <span style="font-size: 12px; color: #34d399; font-weight: 600;">Autoregressive Decoding Target</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
+                The fine-tuned Qwen2-7B causal decoder generates tokens sequentially until emitting the end token <code>&lt;|im_end|&gt;</code> (Token ID 151645).
+            </p>
+        </div>
+        """)
+
+        if st.button("⚡ Test Live Inference From This Prompt", key="btn_test_live_prompt", width="stretch"):
+            with st.spinner("🤖 Running Qwen2-7B fine-tuned causal model on current prompt..."):
+                test_output = engine.llm.generate_rca(
+                    current_metrics,
+                    recent_logs=[
+                        {"timestamp": time.strftime("%H:%M:%S"), "level": "WARNING", "message": "High allocation detected in container memory pool."},
+                        {"timestamp": time.strftime("%H:%M:%S"), "level": "ERROR", "message": "Health check degraded: pod responding > 300ms."}
+                    ],
+                    anomaly_type=rca_report.get("anomaly_type", "normal")
+                )
+            st.success("✅ Generated Diagnosis Successfully!")
+            st.json(test_output)
+
+    with prompt_tab_raw:
+        st.caption("Verbatim ChatML stream formatted for exact tokenization:")
+        st.code(prompt_sample, language="text")
+
+    with prompt_tab_tokens:
+        col_tok1, col_tok2, col_tok3, col_tok4 = st.columns(4)
+        est_tokens = len(prompt_sample.split()) + 45
+        with col_tok1:
+            st.metric("Estimated Tokens", f"~{est_tokens}")
+        with col_tok2:
+            st.metric("Context Window", "32,768")
+        with col_tok3:
+            st.metric("Context Used", f"{(est_tokens / 32768) * 100:.2f}%")
+        with col_tok4:
+            st.metric("Decoding Temp", "0.20")
+
+        st.markdown("##### 🔑 Special Token Vocabulary Mapping")
+        st.dataframe(pd.DataFrame([
+            {"Token String": "<|im_start|>", "Token ID": 151644, "Role": "Prefix delimiter for system / user / assistant"},
+            {"Token String": "<|im_end|>", "Token ID": 151645, "Role": "Suffix end-of-turn boundary marker"},
+            {"Token String": "<|endoftext|>", "Token ID": 151643, "Role": "End of complete document sequence"},
+            {"Token String": "<pad>", "Token ID": 151643, "Role": "Batch padding token"}
+        ]), width="stretch")
 
     st.markdown("#### 📦 **Model Storage & Shard Verification**")
     model_dir = os.path.join(PROJECT_ROOT, "telemetry_rca_model")
