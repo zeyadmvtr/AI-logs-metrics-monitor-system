@@ -68,6 +68,7 @@ class RCAEngine:
         recipient: Optional[str] = None,
         smtp_password: Optional[str] = None,
         force_email: bool = False,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Performs full anomaly evaluation and LLM RCA diagnosis."""
         recent_logs = recent_logs or []
