@@ -190,7 +190,7 @@ Report saved to data/rca_reports/{incident_id}.md
         smtp_password: Optional[str] = None,
     ) -> bool:
         """Dispatches email notification for an active RCA report."""
-        if not report.get("is_anomaly"):
+        if not report.get("is_anomaly") and not force:
             return False
 
         anomaly_type = report.get("anomaly_type", "unclassified")

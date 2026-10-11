@@ -1691,12 +1691,52 @@ with tab_rca:
         for res in rca_report.get("permanent_resolution", []):
             st.markdown(f"- {res}")
 
-        if st.button("📧 Dispatch SRE Alert to zeyadmohammed983@gmail.com", width="stretch", type="primary"):
-            sent = dispatcher.send_rca_alert(rca_report, force=True, recipient="zeyadmohammed983@gmail.com")
-            if sent:
-                st.success("✅ Email alert successfully dispatched to zeyadmohammed983@gmail.com!")
+        st.markdown("---")
+        st.markdown("#### 📧 **Alert Dispatch & Recipient Target**")
+
+        col_rca_em, col_rca_save = st.columns([2.5, 1])
+        with col_rca_em:
+            rca_target_email = st.text_input(
+                "Target Email Address:",
+                value=st.session_state.alert_email_recipient,
+                key="rca_tab_email_input",
+                help="Type any recipient email address here"
+            )
+        with col_rca_save:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            if st.button("💾 Set as Default", key="rca_btn_save_email", width="stretch"):
+                if rca_target_email and "@" in rca_target_email:
+                    st.session_state.alert_email_recipient = rca_target_email.strip()
+                    persist_email_settings(rca_target_email.strip(), st.session_state.smtp_app_password)
+                    st.toast(f"✅ Alert email updated to {rca_target_email.strip()}!", icon="✅")
+                    st.rerun()
+                else:
+                    st.error("Please enter a valid email address.")
+
+        smtp_pass = st.session_state.get("smtp_app_password", "")
+
+        if st.button(f"📧 Dispatch SRE Alert to {rca_target_email}", width="stretch", type="primary", key="rca_btn_dispatch"):
+            if not rca_target_email or "@" not in rca_target_email:
+                st.error("Please enter a valid email address.")
             else:
-                st.error("Email dispatch failed.")
+                sent = dispatcher.send_rca_alert(
+                    rca_report,
+                    force=True,
+                    recipient=rca_target_email.strip(),
+                    smtp_user=rca_target_email.strip(),
+                    smtp_password=smtp_pass if smtp_pass else None
+                )
+
+                status_info = getattr(dispatcher, "last_dispatch_status", {})
+                if sent:
+                    if status_info.get("mode") == "live_smtp":
+                        st.success(f"✅ Live Email successfully delivered to {rca_target_email} via SMTP!")
+                    else:
+                        st.success(f"✅ SRE Incident Alert formatted and archived for {rca_target_email}!")
+                        st.info(f"📁 Report saved to `{status_info.get('preview_path', 'data/rca_reports/')}`. (Enter Gmail App Password in sidebar or Archive tab for live TLS delivery).")
+                else:
+                    err_msg = status_info.get("message", "Unknown dispatch failure")
+                    st.error(f"Email dispatch error: {err_msg}")
 
     with col_rca_r:
         st.markdown("#### 📜 **Correlated Container Logs**")
