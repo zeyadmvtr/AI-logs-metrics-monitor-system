@@ -9,6 +9,7 @@ import requests
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from typing import Optional, List, Dict, Any
 
 # Configure project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
