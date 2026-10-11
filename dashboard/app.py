@@ -1791,6 +1791,7 @@ with tab_rca:
                 elif not rca_app_pwd.strip():
                     st.warning("⚠️ Enter your 16-character Gmail App Password above first to enable live delivery!")
                 else:
+                    persist_email_settings(rca_target_email.strip(), rca_app_pwd.strip())
                     with st.spinner("Connecting to Gmail SMTP server..."):
                         test_ok = engine.email_dispatcher.send_test_email(
                             recipient=rca_target_email.strip(),
@@ -1810,6 +1811,8 @@ with tab_rca:
             if not rca_target_email or "@" not in rca_target_email:
                 st.error("Please enter a valid email address.")
             else:
+                if rca_app_pwd.strip():
+                    persist_email_settings(rca_target_email.strip(), rca_app_pwd.strip())
                 with st.spinner(f"Transmitting SRE alert to {rca_target_email}..."):
                     sent = dispatcher.send_rca_alert(
                         rca_report,

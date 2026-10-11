@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import smtplib
+import ssl
 import logging
 import argparse
 from email.mime.multipart import MIMEMultipart
@@ -242,27 +243,62 @@ Report saved to data/rca_reports/{incident_id}.md
             }
             return False
 
-        # Live SMTP Dispatch
+        # Live SMTP Dispatch with dual-port resilience (Port 465 SSL + Port 587 STARTTLS)
+        clean_user = str(active_smtp_user).strip()
+        clean_pass = str(active_smtp_pass).replace(" ", "").strip()
+
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
             # Format sender nicely; if using Gmail account, set From header with that address
-            if "@gmail.com" in str(active_smtp_user).lower():
-                msg["From"] = f"AIOps SRE Alerts <{active_smtp_user}>"
+            if "@gmail.com" in clean_user.lower():
+                msg["From"] = f"AIOps SRE Alerts <{clean_user}>"
             else:
-                msg["From"] = self.settings.SMTP_FROM or active_smtp_user
+                msg["From"] = self.settings.SMTP_FROM or clean_user
             msg["To"] = ", ".join(target_recipients)
 
             msg.attach(MIMEText(text_body, "plain", "utf-8"))
             msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-            logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:{self.settings.SMTP_PORT} for {target_recipients}...")
-            with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT, timeout=14) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                server.login(active_smtp_user, active_smtp_pass)
-                server.sendmail(msg["From"], target_recipients, msg.as_string())
+            sent_ok = False
+            last_conn_error = None
+
+            # Attempt 1: Port 465 (Direct SSL - immune to ISP STARTTLS packet inspection)
+            try:
+                logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:465 (SSL) for {target_recipients}...")
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(self.settings.SMTP_HOST, 465, context=context, timeout=12) as server:
+                    server.ehlo()
+                    server.login(clean_user, clean_pass)
+                    server.sendmail(msg["From"], target_recipients, msg.as_string())
+                    sent_ok = True
+                    logger.info("Successfully transmitted via Port 465 SSL")
+            except (smtplib.SMTPAuthenticationError, smtplib.SMTPServerDisconnected) as auth_err:
+                # If Google server closes connection or rejects auth on 465, credentials are invalid
+                raise auth_err
+            except Exception as e465:
+                logger.warning(f"Port 465 SSL attempt failed ({e465}), falling back to Port 587 STARTTLS...")
+                last_conn_error = e465
+
+            # Attempt 2: Port 587 (STARTTLS fallback)
+            if not sent_ok:
+                try:
+                    logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:587 (TLS) for {target_recipients}...")
+                    with smtplib.SMTP(self.settings.SMTP_HOST, 587, timeout=12) as server:
+                        server.ehlo()
+                        server.starttls()
+                        server.ehlo()
+                        server.login(clean_user, clean_pass)
+                        server.sendmail(msg["From"], target_recipients, msg.as_string())
+                        sent_ok = True
+                        logger.info("Successfully transmitted via Port 587 STARTTLS")
+                except (smtplib.SMTPAuthenticationError, smtplib.SMTPServerDisconnected) as auth_err:
+                    raise auth_err
+                except Exception as e587:
+                    last_conn_error = e587
+
+            if not sent_ok:
+                raise Exception(f"Failed to connect to SMTP server: {last_conn_error}")
 
             logger.info(f"Live email alert successfully sent to {target_recipients} for {incident_id}!")
             self._last_sent_timestamps[anomaly_type] = time.time()
@@ -275,17 +311,17 @@ Report saved to data/rca_reports/{incident_id}.md
             }
             return True
 
-        except smtplib.SMTPAuthenticationError as auth_err:
-            logger.error(f"Gmail SMTP authentication rejected for {active_smtp_user}: {auth_err}")
+        except (smtplib.SMTPAuthenticationError, smtplib.SMTPServerDisconnected) as auth_err:
+            logger.error(f"Gmail SMTP login rejected for {clean_user}: {auth_err}")
             self.last_dispatch_status = {
                 "success": False,
                 "mode": "auth_error",
                 "recipients": target_recipients,
                 "preview_path": email_preview_path,
                 "message": (
-                    f"Gmail SMTP Authentication Failed (535): Invalid Google App Password. "
-                    f"Please generate a 16-character App Password at https://myaccount.google.com/apppasswords "
-                    f"(standard Gmail account passwords cannot be used for SMTP)."
+                    f"Gmail Rejected Login: The 16-character App Password entered was not accepted by Google. "
+                    f"Google disconnects SMTP connections when a standard account password or invalid App Password is provided. "
+                    f"Please generate a 16-character App Password at https://myaccount.google.com/apppasswords and paste it here."
                 )
             }
             return False
