@@ -109,8 +109,8 @@ class RCAEngine:
             "engine_source": llm_output.get("source", "rca_engine"),
         }
 
-        # 4. Save to disk and dispatch email alert if anomaly flagged and requested
-        if anomaly_report.is_anomaly and persist_incident:
+        # 4. Save to disk and dispatch email alert if anomaly flagged or forced
+        if (anomaly_report.is_anomaly or force_email) and persist_incident:
             self.save_report(report)
             if dispatch_email:
                 self.email_dispatcher.send_rca_alert(

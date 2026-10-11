@@ -228,32 +228,36 @@ Report saved to data/rca_reports/{incident_id}.md
 
         # Check if live email dispatch is enabled and configured with credentials
         if not active_smtp_user or not active_smtp_pass:
-            logger.info(
+            logger.warning(
                 f"[SAVED-PREVIEW] Email alert prepared for {incident_id} -> {target_recipients} | "
-                f"Subject: '{subject}' | Provide Gmail App Password to send live over SMTP."
+                f"Subject: '{subject}' | Missing Gmail App Password for live SMTP transmission."
             )
             self._last_sent_timestamps[anomaly_type] = time.time()
             self.last_dispatch_status = {
-                "success": True,
-                "mode": "preview_saved",
+                "success": False,
+                "mode": "missing_credentials",
                 "recipients": target_recipients,
                 "preview_path": email_preview_path,
-                "message": f"Alert formatted and saved for {', '.join(target_recipients)}"
+                "message": f"Gmail App Password not provided. Pre-rendered alert report archived locally to {email_preview_path}."
             }
-            return True
+            return False
 
         # Live SMTP Dispatch
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
-            msg["From"] = self.settings.SMTP_FROM or active_smtp_user
+            # Format sender nicely; if using Gmail account, set From header with that address
+            if "@gmail.com" in str(active_smtp_user).lower():
+                msg["From"] = f"AIOps SRE Alerts <{active_smtp_user}>"
+            else:
+                msg["From"] = self.settings.SMTP_FROM or active_smtp_user
             msg["To"] = ", ".join(target_recipients)
 
             msg.attach(MIMEText(text_body, "plain", "utf-8"))
             msg.attach(MIMEText(html_body, "html", "utf-8"))
 
             logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:{self.settings.SMTP_PORT} for {target_recipients}...")
-            with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT, timeout=12) as server:
+            with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT, timeout=14) as server:
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
@@ -271,6 +275,21 @@ Report saved to data/rca_reports/{incident_id}.md
             }
             return True
 
+        except smtplib.SMTPAuthenticationError as auth_err:
+            logger.error(f"Gmail SMTP authentication rejected for {active_smtp_user}: {auth_err}")
+            self.last_dispatch_status = {
+                "success": False,
+                "mode": "auth_error",
+                "recipients": target_recipients,
+                "preview_path": email_preview_path,
+                "message": (
+                    f"Gmail SMTP Authentication Failed (535): Invalid Google App Password. "
+                    f"Please generate a 16-character App Password at https://myaccount.google.com/apppasswords "
+                    f"(standard Gmail account passwords cannot be used for SMTP)."
+                )
+            }
+            return False
+
         except Exception as exc:
             logger.error(f"Failed to dispatch live email alert for {incident_id}: {exc}", exc_info=True)
             self.last_dispatch_status = {
@@ -278,9 +297,48 @@ Report saved to data/rca_reports/{incident_id}.md
                 "mode": "error",
                 "recipients": target_recipients,
                 "preview_path": email_preview_path,
-                "message": f"SMTP Error: {exc}"
+                "message": f"SMTP Dispatch Error: {exc}"
             }
             return False
+
+    def send_test_email(
+        self,
+        recipient: str,
+        smtp_user: Optional[str] = None,
+        smtp_password: Optional[str] = None
+    ) -> bool:
+        """Sends an immediate verification test email to validate SMTP credentials and inbox delivery."""
+        test_rca = {
+            "incident_id": f"TEST-PULSE-{int(time.time())}",
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "anomaly_type": "connectivity_test",
+            "severity": "LOW",
+            "root_cause": "AIOps SMTP Telemetry Connection & Recipient Verification Test",
+            "mechanism": "Manual end-to-end verification triggered by SRE operator to confirm that automated alerts reach this inbox.",
+            "imminent_risk": "None. Operational readiness test.",
+            "immediate_mitigation": [
+                "echo 'AIOps Outbound Notification Channel: VERIFIED'",
+                "echo 'Alerting pipeline operational and authenticated'"
+            ],
+            "permanent_resolution": [
+                "Real-time chaos alerts and RCA reports will arrive directly at this email address.",
+                "Verify that notification emails are marked as safe/VIP in your Gmail inbox."
+            ],
+            "telemetry_evidence": {
+                "smtp_host": self.settings.SMTP_HOST,
+                "smtp_port": self.settings.SMTP_PORT,
+                "recipient": recipient,
+                "status": "Authentication verified"
+            },
+            "is_anomaly": True
+        }
+        return self.send_rca_alert(
+            test_rca,
+            force=True,
+            recipient=recipient,
+            smtp_user=smtp_user,
+            smtp_password=smtp_password
+        )
 
 
 def main():

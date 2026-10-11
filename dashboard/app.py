@@ -523,6 +523,7 @@ def persist_email_settings(new_email: str, new_pass: Optional[str] = None):
             lines = f.readlines()
 
     found_recip = False
+    found_user = False
     found_pass = False
     new_lines = []
     for line in lines:
@@ -531,6 +532,7 @@ def persist_email_settings(new_email: str, new_pass: Optional[str] = None):
             found_recip = True
         elif line.startswith("TELEMETRY_SMTP_USER="):
             new_lines.append(f"TELEMETRY_SMTP_USER={new_email}\n")
+            found_user = True
         elif line.startswith("TELEMETRY_SMTP_PASSWORD=") and new_pass is not None:
             new_lines.append(f"TELEMETRY_SMTP_PASSWORD={new_pass}\n")
             found_pass = True
@@ -539,6 +541,8 @@ def persist_email_settings(new_email: str, new_pass: Optional[str] = None):
 
     if not found_recip:
         new_lines.append(f"TELEMETRY_ALERT_RECIPIENTS={new_email}\n")
+    if not found_user:
+        new_lines.append(f"TELEMETRY_SMTP_USER={new_email}\n")
     if not found_pass and new_pass is not None:
         new_lines.append(f"TELEMETRY_SMTP_PASSWORD={new_pass}\n")
 
@@ -549,10 +553,15 @@ def persist_email_settings(new_email: str, new_pass: Optional[str] = None):
         pass
 
     os.environ["TELEMETRY_ALERT_RECIPIENTS"] = new_email
+    os.environ["TELEMETRY_SMTP_USER"] = new_email
     if new_pass is not None:
         os.environ["TELEMETRY_SMTP_PASSWORD"] = new_pass
+        st.session_state.smtp_app_password = new_pass
+    st.session_state.alert_email_recipient = new_email
+
     if hasattr(engine, "email_dispatcher") and hasattr(engine.email_dispatcher, "settings"):
         engine.email_dispatcher.settings.ALERT_RECIPIENTS = new_email
+        engine.email_dispatcher.settings.SMTP_USER = new_email
         if new_pass is not None:
             engine.email_dispatcher.settings.SMTP_PASSWORD = new_pass
 
@@ -672,16 +681,25 @@ def trigger_chaos_incident(chaos_key: str, metric_updates: dict, sample_logs: li
         force_email=True
     )
     st.session_state.last_rca_report = rep
+    disp_status = getattr(engine.email_dispatcher, "last_dispatch_status", {})
+    disp_mode = disp_status.get("mode", "unknown")
     st.session_state.last_dispatched_alert_info = {
         "incident_id": rep.get("incident_id"),
         "recipient": target_recip,
         "anomaly": chaos_key,
         "timestamp": time.strftime("%H:%M:%S"),
-        "status": "Dispatched Automatically"
+        "status": "Delivered via SMTP" if disp_mode == "live_smtp" else "Archived (App Password needed)"
     }
 
     if auto_email:
-        st.toast(f"🚨 Chaos Triggered! Automated alert sent directly to {target_recip}", icon="📧")
+        if disp_mode == "live_smtp":
+            st.toast(f"🚨 Incident Alert delivered live to {target_recip}!", icon="📧")
+        elif disp_mode == "missing_credentials":
+            st.toast(f"⚡ Chaos injected! Enter Gmail App Password to receive real emails at {target_recip}", icon="⚠️")
+        elif disp_mode == "auth_error":
+            st.toast(f"❌ Gmail Auth Error: Invalid App Password for {target_recip}", icon="🚨")
+        else:
+            st.toast(f"⚡ Injected {chaos_key} Chaos! ({disp_status.get('message', '')})", icon="⚠️")
     else:
         st.toast(f"⚡ Injected {chaos_key} Chaos!", icon="⚠️")
 
@@ -752,35 +770,65 @@ with st.sidebar:
     # EMAIL TARGET CONFIGURATION (Right from the website!)
     st.markdown("---")
     st.markdown("### 📧 **Alert Email Target (Website Control)**")
-    st.caption("Change where autonomous incident alerts are dispatched in real time:")
+    
+    has_pass = bool(st.session_state.get("smtp_app_password", "").strip())
+    if has_pass:
+        st.caption("🟢 **Live Gmail SMTP Enabled** (TLS 587)")
+    else:
+        st.caption("🟡 **App Password Required** for real Gmail delivery")
+        st.markdown(
+            '<a href="https://myaccount.google.com/apppasswords" target="_blank" style="font-size: 11px; color: #38bdf8; text-decoration: underline;">👉 Generate Google App Password</a>',
+            unsafe_allow_html=True
+        )
 
     current_email_val = st.text_input(
         "Alert Recipient Email",
         value=st.session_state.alert_email_recipient,
+        key="sb_alert_email_input",
         help="All automated alerts will be dispatched directly to this address."
     )
 
-    with st.expander("🔑 SMTP Google App Password", expanded=False):
-        current_pass_val = st.text_input(
-            "Gmail App Password",
-            type="password",
-            value=st.session_state.smtp_app_password,
-            help="16-character Google App Password for live SMTP transmission."
-        )
-        st.caption("If empty, formatted HTML emails are pre-rendered and archived locally.")
+    current_pass_val = st.text_input(
+        "Gmail App Password (16-char)",
+        type="password",
+        value=st.session_state.smtp_app_password,
+        key="sb_smtp_pass_input",
+        help="16-character Google App Password from https://myaccount.google.com/apppasswords"
+    )
 
     auto_email_toggle = st.toggle("⚡ Direct Alert Dispatch on Chaos", value=st.session_state.auto_email_dispatch)
     st.session_state.auto_email_dispatch = auto_email_toggle
 
-    if st.button("💾 Save Alert Target Email", width="stretch"):
-        if current_email_val and "@" in current_email_val:
-            st.session_state.alert_email_recipient = current_email_val.strip()
-            st.session_state.smtp_app_password = current_pass_val.strip()
-            persist_email_settings(current_email_val.strip(), current_pass_val.strip())
-            st.toast(f"✅ Alert email updated to {current_email_val.strip()}!", icon="✅")
-            st.rerun()
-        else:
-            st.error("Please enter a valid email address.")
+    col_sb_save, col_sb_test = st.columns(2)
+    with col_sb_save:
+        if st.button("💾 Save Settings", width="stretch", key="sb_btn_save_email"):
+            if current_email_val and "@" in current_email_val:
+                persist_email_settings(current_email_val.strip(), current_pass_val.strip())
+                st.toast(f"✅ Alert email updated to {current_email_val.strip()}!", icon="✅")
+                st.rerun()
+            else:
+                st.error("Please enter a valid email address.")
+
+    with col_sb_test:
+        if st.button("🧪 Test Email", width="stretch", key="sb_btn_test_email"):
+            if not current_email_val or "@" not in current_email_val:
+                st.error("Enter a valid email.")
+            elif not current_pass_val.strip():
+                st.warning("Enter your 16-char App Password first!")
+            else:
+                with st.spinner("Testing SMTP..."):
+                    test_ok = engine.email_dispatcher.send_test_email(
+                        recipient=current_email_val.strip(),
+                        smtp_user=current_email_val.strip(),
+                        smtp_password=current_pass_val.strip()
+                    )
+                    status_info = getattr(engine.email_dispatcher, "last_dispatch_status", {})
+                    if test_ok:
+                        st.toast(f"🎉 Test email delivered to {current_email_val.strip()}!", icon="✅")
+                    elif status_info.get("mode") == "auth_error":
+                        st.error("Invalid Google App Password (535).")
+                    else:
+                        st.error(f"SMTP error: {status_info.get('message')}")
 
     st.markdown("---")
     st.markdown("### ⚡ **Chaos Fault Injection Lab**")
@@ -1692,9 +1740,24 @@ with tab_rca:
             st.markdown(f"- {res}")
 
         st.markdown("---")
-        st.markdown("#### 📧 **Alert Dispatch & Recipient Target**")
+        st.markdown("#### 📧 **Alert Dispatch & Live Email Routing**")
 
-        col_rca_em, col_rca_save = st.columns([2.5, 1])
+        has_smtp_pass = bool(st.session_state.get("smtp_app_password", "").strip())
+        if has_smtp_pass:
+            st.html("""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #34d399;">
+                🟢 <strong>Live Gmail SMTP Enabled:</strong> Alerts will be delivered directly to your Gmail inbox over TLS port 587.
+            </div>
+            """)
+        else:
+            st.html("""
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #fbbf24;">
+                🟡 <strong>Gmail App Password Required for Real Delivery:</strong> Google blocks automated logins with standard passwords. To receive real emails in your inbox, enter your 16-character Google App Password below.
+                <br><a href="https://myaccount.google.com/apppasswords" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">👉 Generate Google App Password here (30 seconds)</a>
+            </div>
+            """)
+
+        col_rca_em, col_rca_pwd = st.columns([1.2, 1.2])
         with col_rca_em:
             rca_target_email = st.text_input(
                 "Target Email Address:",
@@ -1702,38 +1765,69 @@ with tab_rca:
                 key="rca_tab_email_input",
                 help="Type any recipient email address here"
             )
-        with col_rca_save:
-            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-            if st.button("💾 Set as Default", key="rca_btn_save_email", width="stretch"):
+        with col_rca_pwd:
+            rca_app_pwd = st.text_input(
+                "Gmail App Password (16-char):",
+                value=st.session_state.smtp_app_password,
+                type="password",
+                key="rca_tab_pwd_input",
+                help="16-character Google App Password from https://myaccount.google.com/apppasswords"
+            )
+
+        col_btn_save, col_btn_test = st.columns([1, 1])
+        with col_btn_save:
+            if st.button("💾 Save as Default", key="rca_btn_save_email", width="stretch"):
                 if rca_target_email and "@" in rca_target_email:
-                    st.session_state.alert_email_recipient = rca_target_email.strip()
-                    persist_email_settings(rca_target_email.strip(), st.session_state.smtp_app_password)
+                    persist_email_settings(rca_target_email.strip(), rca_app_pwd.strip())
                     st.toast(f"✅ Alert email updated to {rca_target_email.strip()}!", icon="✅")
                     st.rerun()
                 else:
                     st.error("Please enter a valid email address.")
 
-        smtp_pass = st.session_state.get("smtp_app_password", "")
+        with col_btn_test:
+            if st.button("🧪 Send Test Email to Inbox", key="rca_btn_test_email", width="stretch"):
+                if not rca_target_email or "@" not in rca_target_email:
+                    st.error("Please enter a valid email address.")
+                elif not rca_app_pwd.strip():
+                    st.warning("⚠️ Enter your 16-character Gmail App Password above first to enable live delivery!")
+                else:
+                    with st.spinner("Connecting to Gmail SMTP server..."):
+                        test_ok = engine.email_dispatcher.send_test_email(
+                            recipient=rca_target_email.strip(),
+                            smtp_user=rca_target_email.strip(),
+                            smtp_password=rca_app_pwd.strip()
+                        )
+                        status_info = getattr(engine.email_dispatcher, "last_dispatch_status", {})
+                        if test_ok:
+                            st.success(f"🎉 Verification email successfully delivered to {rca_target_email}! Check your Gmail inbox.")
+                            st.balloons()
+                        elif status_info.get("mode") == "auth_error":
+                            st.error(status_info.get("message"))
+                        else:
+                            st.error(f"Failed to deliver: {status_info.get('message')}")
 
-        if st.button(f"📧 Dispatch SRE Alert to {rca_target_email}", width="stretch", type="primary", key="rca_btn_dispatch"):
+        if st.button(f"🚀 Dispatch Incident Alert to {rca_target_email}", width="stretch", type="primary", key="rca_btn_dispatch"):
             if not rca_target_email or "@" not in rca_target_email:
                 st.error("Please enter a valid email address.")
             else:
-                sent = dispatcher.send_rca_alert(
-                    rca_report,
-                    force=True,
-                    recipient=rca_target_email.strip(),
-                    smtp_user=rca_target_email.strip(),
-                    smtp_password=smtp_pass if smtp_pass else None
-                )
+                with st.spinner(f"Transmitting SRE alert to {rca_target_email}..."):
+                    sent = dispatcher.send_rca_alert(
+                        rca_report,
+                        force=True,
+                        recipient=rca_target_email.strip(),
+                        smtp_user=rca_target_email.strip(),
+                        smtp_password=rca_app_pwd.strip() if rca_app_pwd.strip() else None
+                    )
 
                 status_info = getattr(dispatcher, "last_dispatch_status", {})
-                if sent:
-                    if status_info.get("mode") == "live_smtp":
-                        st.success(f"✅ Live Email successfully delivered to {rca_target_email} via SMTP!")
-                    else:
-                        st.success(f"✅ SRE Incident Alert formatted and archived for {rca_target_email}!")
-                        st.info(f"📁 Report saved to `{status_info.get('preview_path', 'data/rca_reports/')}`. (Enter Gmail App Password in sidebar or Archive tab for live TLS delivery).")
+                if status_info.get("mode") == "live_smtp":
+                    st.success(f"🎉 Live Email successfully delivered to {rca_target_email} via SMTP! Please check your Gmail inbox (and Spam folder).")
+                    st.balloons()
+                elif status_info.get("mode") == "missing_credentials":
+                    st.warning(f"⚠️ Email was NOT sent to your Gmail inbox because the 16-character Gmail App Password is missing.")
+                    st.info(f"📁 Pre-rendered incident report was archived locally at `{status_info.get('preview_path')}`. Enter your Google App Password above and click 'Save as Default' to send live emails.")
+                elif status_info.get("mode") == "auth_error":
+                    st.error(status_info.get("message"))
                 else:
                     err_msg = status_info.get("message", "Unknown dispatch failure")
                     st.error(f"Email dispatch error: {err_msg}")
@@ -2031,11 +2125,15 @@ with tab_archive:
 
                 status_info = getattr(dispatcher, "last_dispatch_status", {})
                 if status_info.get("mode") == "live_smtp":
-                    st.success(f"✅ Live Email successfully delivered to {alert_email_input} via SMTP!")
+                    st.success(f"🎉 Live Email successfully delivered to {alert_email_input} via SMTP! Please check your Gmail inbox (and Spam folder).")
+                    st.balloons()
+                elif status_info.get("mode") == "missing_credentials":
+                    st.warning(f"⚠️ Live email was NOT sent to {alert_email_input} because the 16-character Gmail App Password is missing.")
+                    st.info(f"📁 Alert report archived locally to `{status_info.get('preview_path')}`. Enter your Google App Password above and click 'Save as Active Target' for live inbox delivery.")
+                elif status_info.get("mode") == "auth_error":
+                    st.error(status_info.get("message"))
                 else:
-                    st.success(f"✅ Alert formatted for {alert_email_input} and saved to data/rca_reports/!")
-                    if not gmail_app_pass.strip():
-                        st.info(f"ℹ️ Alert generated and archived for {alert_email_input}. To deliver directly into your Gmail inbox, paste your 16-character Gmail App Password above.")
+                    st.error(f"SMTP error: {status_info.get('message')}")
 
         html_emails = sorted(glob.glob(os.path.join(reports_dir, "email_*.html")), reverse=True)
         if html_emails:
