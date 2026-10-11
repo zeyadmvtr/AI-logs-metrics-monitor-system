@@ -65,6 +65,9 @@ class RCAEngine:
         history_df: Optional[pd.DataFrame] = None,
         persist_incident: bool = True,
         dispatch_email: bool = True,
+        recipient: Optional[str] = None,
+        smtp_password: Optional[str] = None,
+        force_email: bool = False,
     ) -> Dict[str, Any]:
         """Performs full anomaly evaluation and LLM RCA diagnosis."""
         recent_logs = recent_logs or []
@@ -109,7 +112,12 @@ class RCAEngine:
         if anomaly_report.is_anomaly and persist_incident:
             self.save_report(report)
             if dispatch_email:
-                self.email_dispatcher.send_rca_alert(report)
+                self.email_dispatcher.send_rca_alert(
+                    report,
+                    force=force_email,
+                    recipient=recipient,
+                    smtp_password=smtp_password
+                )
 
         return report
 
