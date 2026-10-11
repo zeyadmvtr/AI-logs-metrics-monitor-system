@@ -181,7 +181,14 @@ PRESCRIBED REMEDIATION RUNBOOK:
 Report saved to data/rca_reports/{incident_id}.md
 """
 
-    def send_rca_alert(self, report: Dict[str, Any], force: bool = False) -> bool:
+    def send_rca_alert(
+        self,
+        report: Dict[str, Any],
+        force: bool = False,
+        recipient: Optional[str] = None,
+        smtp_user: Optional[str] = None,
+        smtp_password: Optional[str] = None,
+    ) -> bool:
         """Dispatches email notification for an active RCA report."""
         if not report.get("is_anomaly"):
             return False
@@ -207,43 +214,72 @@ Report saved to data/rca_reports/{incident_id}.md
         except Exception:
             pass
 
-        recipients_str = self.settings.ALERT_RECIPIENTS.strip()
-        recipients = [r.strip() for r in recipients_str.split(",") if r.strip()]
+        # Target recipient priority: parameter > settings > default
+        target_recipients = []
+        if recipient and recipient.strip():
+            target_recipients = [r.strip() for r in recipient.split(",") if r.strip()]
+        elif self.settings.ALERT_RECIPIENTS.strip():
+            target_recipients = [r.strip() for r in self.settings.ALERT_RECIPIENTS.split(",") if r.strip()]
+        else:
+            target_recipients = ["zeyadmohammed983@gmail.com"]
 
-        # Check if live email dispatch is enabled and configured
-        if not self.settings.ENABLE_EMAIL_ALERTS or not recipients or not self.settings.SMTP_USER:
+        active_smtp_user = smtp_user or self.settings.SMTP_USER
+        active_smtp_pass = smtp_password or self.settings.SMTP_PASSWORD
+
+        # Check if live email dispatch is enabled and configured with credentials
+        if not active_smtp_user or not active_smtp_pass:
             logger.info(
-                f"[DRY-RUN] Email alert prepared for {incident_id} | "
-                f"Subject: '{subject}' | Enable TELEMETRY_ENABLE_EMAIL_ALERTS=True in .env to send live."
+                f"[SAVED-PREVIEW] Email alert prepared for {incident_id} -> {target_recipients} | "
+                f"Subject: '{subject}' | Provide Gmail App Password to send live over SMTP."
             )
             self._last_sent_timestamps[anomaly_type] = time.time()
+            self.last_dispatch_status = {
+                "success": True,
+                "mode": "preview_saved",
+                "recipients": target_recipients,
+                "preview_path": email_preview_path,
+                "message": f"Alert formatted and saved for {', '.join(target_recipients)}"
+            }
             return True
 
         # Live SMTP Dispatch
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
-            msg["From"] = self.settings.SMTP_FROM or self.settings.SMTP_USER
-            msg["To"] = ", ".join(recipients)
+            msg["From"] = self.settings.SMTP_FROM or active_smtp_user
+            msg["To"] = ", ".join(target_recipients)
 
             msg.attach(MIMEText(text_body, "plain", "utf-8"))
             msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-            logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:{self.settings.SMTP_PORT}...")
-            with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT, timeout=10) as server:
+            logger.info(f"Connecting to SMTP server {self.settings.SMTP_HOST}:{self.settings.SMTP_PORT} for {target_recipients}...")
+            with smtplib.SMTP(self.settings.SMTP_HOST, self.settings.SMTP_PORT, timeout=12) as server:
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
-                if self.settings.SMTP_PASSWORD:
-                    server.login(self.settings.SMTP_USER, self.settings.SMTP_PASSWORD)
-                server.sendmail(msg["From"], recipients, msg.as_string())
+                server.login(active_smtp_user, active_smtp_pass)
+                server.sendmail(msg["From"], target_recipients, msg.as_string())
 
-            logger.info(f"Email alert successfully dispatched to {len(recipients)} recipient(s) for {incident_id}!")
+            logger.info(f"Live email alert successfully sent to {target_recipients} for {incident_id}!")
             self._last_sent_timestamps[anomaly_type] = time.time()
+            self.last_dispatch_status = {
+                "success": True,
+                "mode": "live_smtp",
+                "recipients": target_recipients,
+                "preview_path": email_preview_path,
+                "message": f"Live email successfully delivered to {', '.join(target_recipients)} via SMTP"
+            }
             return True
 
         except Exception as exc:
             logger.error(f"Failed to dispatch live email alert for {incident_id}: {exc}", exc_info=True)
+            self.last_dispatch_status = {
+                "success": False,
+                "mode": "error",
+                "recipients": target_recipients,
+                "preview_path": email_preview_path,
+                "message": f"SMTP Error: {exc}"
+            }
             return False
 
 

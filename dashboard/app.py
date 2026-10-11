@@ -531,6 +531,14 @@ if "history_buffer" not in st.session_state:
 if "last_reported_anomaly" not in st.session_state:
     st.session_state.last_reported_anomaly = "normal"
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = [
+        {
+            "role": "assistant",
+            "content": "Hello! I am your Autonomous SRE Copilot powered by the fine-tuned Qwen2-7B AIOps model. I am monitoring your Kubernetes cluster and microservices.\n\nAsk me anything about incident root causes, mitigation runbooks, Canary rollbacks, or permanent architectural solutions!"
+        }
+    ]
+
 
 # ---------------------------------------------------------
 # Sidebar: Chaos Fault Lab & Cluster Controls
@@ -693,10 +701,11 @@ st.html(f"""
 # ---------------------------------------------------------
 # Tabbed Navigation (Clean, AnomIQ Style)
 # ---------------------------------------------------------
-tab_overview, tab_monitoring, tab_rca, tab_lab, tab_llm, tab_archive = st.tabs([
+tab_overview, tab_monitoring, tab_rca, tab_chat, tab_lab, tab_llm, tab_archive = st.tabs([
     "🌐 Overview",
     "📊 Monitoring",
     "🧠 RCA (Root Cause)",
+    "💬 SRE Copilot Chat",
     "🧪 AI Diagnostic Lab",
     "🤖 LLM Architecture",
     "📁 Incident Archive & Alerts"
@@ -1412,10 +1421,10 @@ with tab_rca:
         for res in rca_report.get("permanent_resolution", []):
             st.markdown(f"- {res}")
 
-        if st.button("📧 Dispatch Immediate SRE Alert Email", width="stretch", type="primary"):
-            sent = dispatcher.send_rca_alert(rca_report, force=True)
+        if st.button("📧 Dispatch SRE Alert to zeyadmohammed983@gmail.com", width="stretch", type="primary"):
+            sent = dispatcher.send_rca_alert(rca_report, force=True, recipient="zeyadmohammed983@gmail.com")
             if sent:
-                st.success("✅ Email alert successfully rendered & dispatched to SRE on-call!")
+                st.success("✅ Email alert successfully dispatched to zeyadmohammed983@gmail.com!")
             else:
                 st.error("Email dispatch failed.")
 
@@ -1435,7 +1444,87 @@ with tab_rca:
 
 
 # =========================================================
-# PAGE 4: INTERACTIVE AI DIAGNOSTIC LAB
+# PAGE 4: SRE COPILOT AI CHAT (CHAT ABOUT SOLUTIONS)
+# =========================================================
+with tab_chat:
+    st.html("""
+    <div style="margin-bottom: 20px;">
+        <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px;">💬 SRE Copilot AI Chat</h1>
+        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Interactive site reliability engineering chat powered by the Fine-Tuned Qwen2-7B model to explore possible solutions, rollbacks, and prevention strategies.</p>
+    </div>
+    """)
+
+    # Active Incident Context Card
+    inc_chip_text = f"Active Context: {rca_report.get('incident_id', 'INC-LIVE')} · {rca_report.get('anomaly_type', 'NORMAL').upper()} ({rca_report.get('severity', 'LOW')} Severity)"
+    st.html(f"""
+    <div class="saas-card" style="padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div class="card-ambient-highlight"></div>
+        <div>
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent-cyan-bright); text-transform: uppercase;">CONTEXT AWARE COPILOT</span>
+            <div style="font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px;">{rca_report.get('root_cause', 'Operational Steady-State')}</div>
+        </div>
+        <span class="kpi-pill-badge {'pill-rose' if is_anomaly else 'pill-cyan'}">{inc_chip_text}</span>
+    </div>
+    """)
+
+    # Quick Suggestion Prompts
+    st.markdown("##### ⚡ Quick SRE Investigation Prompts:")
+    q_cols = st.columns(4)
+    quick_prompt = None
+    with q_cols[0]:
+        if st.button("🛠️ Possible Solutions", width="stretch"):
+            quick_prompt = "What are the permanent and immediate solutions for this incident?"
+    with q_cols[1]:
+        if st.button("🔄 Rollback Runbook", width="stretch"):
+            quick_prompt = "Give me the emergency zero-downtime rollback runbook commands."
+    with q_cols[2]:
+        if st.button("🔍 Explain Mechanism", width="stretch"):
+            quick_prompt = "Explain the technical failure mechanism simply."
+    with q_cols[3]:
+        if st.button("🛡️ Hardening & CI/CD", width="stretch"):
+            quick_prompt = "How can we prevent this in CI/CD and tune Kubernetes HPA and resource limits?"
+
+    # Render Chat History
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_history:
+            avatar = "🛡️" if msg["role"] == "assistant" else "👤"
+            with st.chat_message(msg["role"], avatar=avatar):
+                st.markdown(msg["content"])
+
+    # Chat Input
+    user_input = st.chat_input("Ask SRE Copilot about possible solutions, kubectl commands, or architecture fixes...")
+    active_query = quick_prompt or user_input
+
+    if active_query:
+        st.session_state.chat_history.append({"role": "user", "content": active_query})
+        with st.chat_message("user", avatar="👤"):
+            st.markdown(active_query)
+
+        with st.chat_message("assistant", avatar="🛡️"):
+            with st.spinner("🤖 SRE Copilot analyzing solution landscape..."):
+                ai_resp = engine.llm.chat_with_copilot(
+                    active_query,
+                    st.session_state.chat_history,
+                    incident_context=rca_report
+                )
+                st.markdown(ai_resp)
+                st.session_state.chat_history.append({"role": "assistant", "content": ai_resp})
+
+    col_clr, _ = st.columns([1, 4])
+    with col_clr:
+        if st.button("🗑️ Clear Chat History", type="secondary"):
+            st.session_state.chat_history = [
+                {
+                    "role": "assistant",
+                    "content": "Chat reset. Ask me anything about current telemetry or incident solutions!"
+                }
+            ]
+            st.rerun()
+
+
+# =========================================================
+# PAGE 5: INTERACTIVE AI DIAGNOSTIC LAB
 # =========================================================
 with tab_lab:
     st.html("""
@@ -1631,38 +1720,70 @@ with tab_archive:
 
     with col_em2:
         st.markdown("#### 📧 **Automated SRE Email Alert Dispatcher**")
-        if st.button("🚀 Trigger Test Alert Dispatch", type="primary", width="stretch"):
+        st.html("""
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; color: #34d399;">
+            ✅ <strong>Auto-Dispatch Target:</strong> <code>zeyadmohammed983@gmail.com</code> is actively configured for all incident alerts.
+        </div>
+        """)
+
+        alert_email_input = st.text_input(
+            "Primary Alert Recipient:",
+            value="zeyadmohammed983@gmail.com",
+            help="Target inbox where all SRE alerts and RCA reports are dispatched"
+        )
+        gmail_app_pass = st.text_input(
+            "Gmail App Password (Optional - for live TLS delivery):",
+            value="",
+            type="password",
+            help="Google Account -> Security -> 2-Step Verification -> App Passwords. If left blank, formatted HTML alerts are securely prepared & saved to data/rca_reports/."
+        )
+
+        if st.button(f"🚀 Dispatch Incident Alert to {alert_email_input}", type="primary", width="stretch"):
             test_rca = {
-                "incident_id": f"INC-TEST-{int(time.time())}",
+                "incident_id": f"INC-AUTO-{int(time.time())}",
                 "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "anomaly_type": "memory_leak",
-                "severity": "CRITICAL",
-                "root_cause": "Container Memory Leak / Impending OOMKilled Event",
-                "mechanism": "Heap allocation climbing continuously past safe operational limits (488 MB / 512 MB).",
-                "imminent_risk": "Imminent Pod OOMKilled by Linux kernel (ExitCode 137).",
-                "immediate_mitigation": [
+                "anomaly_type": rca_report.get("anomaly_type", "memory_leak"),
+                "severity": rca_report.get("severity", "CRITICAL"),
+                "root_cause": rca_report.get("root_cause", "Container Memory Leak / Impending OOMKilled Event"),
+                "mechanism": rca_report.get("mechanism", "Working set climbed past operational limit (488 MB / 512 MB)."),
+                "imminent_risk": rca_report.get("imminent_risk", "Imminent Pod OOMKilled by Linux kernel (ExitCode 137)."),
+                "immediate_mitigation": rca_report.get("immediate_mitigation", [
                     "kubectl rollout restart deployment/aiops-backend -n dev",
                     "kubectl top pod -l app=aiops-backend -n dev"
-                ],
-                "permanent_resolution": [
+                ]),
+                "permanent_resolution": rca_report.get("permanent_resolution", [
                     "Audit uncollected memory caches and background asyncio tasks.",
                     "Adjust pod memory limit from 512Mi to 1Gi in deployment manifests."
-                ],
+                ]),
                 "telemetry_evidence": {
-                    "cpu_cores": "0.1780 cores",
-                    "memory_mb": "488.6 MB",
-                    "error_rate_pct": "0.0%",
-                    "p95_latency_ms": "68.2 ms",
-                    "active_pods": 2
-                }
+                    "cpu_cores": f"{current_metrics.get('cpu_cores', 0.178):.4f} cores",
+                    "memory_mb": f"{current_metrics.get('memory_mb', 488.6):.1f} MB",
+                    "error_rate_pct": f"{current_metrics.get('error_rate_pct', 0.0):.1f}%",
+                    "p95_latency_ms": f"{current_metrics.get('p95_latency_ms', 68.2):.1f} ms",
+                    "active_pods": current_metrics.get("active_pods", 2)
+                },
+                "is_anomaly": True
             }
-            sent = dispatcher.send_rca_alert(test_rca, force=True)
-            if sent:
-                st.success("✅ Test Alert generated and saved!")
+
+            sent = dispatcher.send_rca_alert(
+                test_rca,
+                force=True,
+                recipient=alert_email_input,
+                smtp_user=alert_email_input,
+                smtp_password=gmail_app_pass.strip() if gmail_app_pass.strip() else None
+            )
+
+            status_info = getattr(dispatcher, "last_dispatch_status", {})
+            if status_info.get("mode") == "live_smtp":
+                st.success(f"✅ Live Email successfully delivered to {alert_email_input} via SMTP!")
+            else:
+                st.success(f"✅ Alert formatted for {alert_email_input} and saved to data/rca_reports/!")
+                if not gmail_app_pass.strip():
+                    st.info(f"ℹ️ Alert generated and archived for {alert_email_input}. To deliver directly into your Gmail inbox, paste your 16-character Gmail App Password above.")
 
         html_emails = sorted(glob.glob(os.path.join(reports_dir, "email_*.html")), reverse=True)
         if html_emails:
-            st.caption("Latest Rendered HTML Email Preview:")
+            st.caption(f"Rendered HTML Alert Template for {alert_email_input}:")
             with open(html_emails[0], "r", encoding="utf-8") as f:
                 html_code = f.read()
             st.components.v1.html(html_code, height=480, scrolling=True)
