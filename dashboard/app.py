@@ -32,9 +32,8 @@ st.set_page_config(
 
 # ---------------------------------------------------------
 # AnomIQ Design System CSS (Obsidian Canvas, Cyan & Blue Glows)
-# Directly inspired by https://mariam2996.github.io/anomiq/projects/
 # ---------------------------------------------------------
-st.markdown("""
+st.html("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
@@ -43,9 +42,9 @@ st.markdown("""
         --bg-canvas-subtle: #080b13;
         --bg-surface: #0c101b;
         --bg-surface-elevated: #111726;
-        --bg-card: rgba(13, 18, 30, 0.72);
-        --bg-card-hover: rgba(18, 25, 42, 0.88);
-        --bg-glass-input: rgba(10, 14, 24, 0.75);
+        --bg-card: rgba(13, 18, 30, 0.75);
+        --bg-card-hover: rgba(18, 25, 42, 0.9);
+        --bg-glass-input: rgba(10, 14, 24, 0.8);
 
         --accent-cyan: #06b6d4;
         --accent-cyan-bright: #38bdf8;
@@ -88,7 +87,7 @@ st.markdown("""
         font-family: var(--font-mono) !important;
     }
 
-    /* Ambient Luminous Background Orbs */
+    /* Ambient Background Glows */
     .ambient-glow {
         position: fixed;
         border-radius: 50%;
@@ -119,7 +118,7 @@ st.markdown("""
         background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%);
     }
 
-    /* Subtle SaaS Grid Pattern */
+    /* SaaS Grid Pattern */
     .saas-grid-pattern {
         position: fixed;
         inset: 0;
@@ -132,14 +131,14 @@ st.markdown("""
         mask-image: radial-gradient(ellipse at 50% 15%, black 40%, transparent 85%);
     }
 
-    /* AnomIQ Minimalist Header Bar */
+    /* AnomIQ Header */
     .site-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 16px 28px;
         margin-bottom: 24px;
-        background: rgba(7, 10, 17, 0.85);
+        background: rgba(7, 10, 17, 0.88);
         backdrop-filter: blur(24px);
         border: 1px solid var(--border-subtle);
         border-radius: 16px;
@@ -150,12 +149,12 @@ st.markdown("""
     .header-left {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 18px;
     }
     .brand-icon-box {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(139, 92, 246, 0.3));
         border: 1px solid rgba(56, 189, 248, 0.4);
         display: flex;
@@ -184,7 +183,7 @@ st.markdown("""
         margin-top: 2px;
     }
 
-    /* Beacon Status Indicator */
+    /* Beacons */
     .status-beacon-dot {
         width: 8px;
         height: 8px;
@@ -210,18 +209,18 @@ st.markdown("""
         50% { transform: scale(1.4); opacity: 0.7; }
     }
 
-    /* AnomIQ Glassmorphic Card System */
+    /* Cards */
     .saas-card {
         background: var(--bg-card);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--border-subtle);
         border-radius: 18px;
-        padding: 24px;
+        padding: 22px;
         box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
         position: relative;
         overflow: hidden;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
         transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .saas-card:hover {
@@ -242,7 +241,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
     .card-title {
         font-size: 16px;
@@ -256,7 +255,7 @@ st.markdown("""
         margin-top: 2px;
     }
 
-    /* Clean KPI Cards */
+    /* KPI Cards */
     .kpi-clean-card {
         padding: 22px 24px;
         border-radius: 16px;
@@ -326,7 +325,7 @@ st.markdown("""
         margin-top: 8px;
     }
 
-    /* Connected AI Pipeline Step Track (Anomaly -> Evidence -> Root Cause -> Action) */
+    /* AI Pipeline Track */
     .ai-pipeline-track {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -369,7 +368,7 @@ st.markdown("""
         line-height: 1.45;
     }
 
-    /* Service Health Cards Grid */
+    /* Service Grid */
     .service-health-grid {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
@@ -399,7 +398,7 @@ st.markdown("""
         color: var(--text-muted);
     }
 
-    /* 16-Node Hardware Matrix */
+    /* Node Chips */
     .node-matrix-container {
         display: grid;
         grid-template-columns: repeat(8, 1fr);
@@ -432,7 +431,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Terminal stream output */
+    /* Terminal stream */
     .clean-log-terminal {
         background: #060912;
         border: 1px solid var(--border-subtle);
@@ -453,7 +452,7 @@ st.markdown("""
     .clean-log-line.warn { color: #fbbf24; }
     .clean-log-line.info { color: #38bdf8; }
 
-    /* Streamlit Tab Custom Styling matching AnomIQ .main-nav */
+    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         display: flex;
         align-items: center;
@@ -489,12 +488,11 @@ st.markdown("""
     }
 </style>
 
-<!-- Luminous Glow Orbs in DOM -->
 <div class="ambient-glow glow-top-left" aria-hidden="true"></div>
 <div class="ambient-glow glow-top-right" aria-hidden="true"></div>
 <div class="ambient-glow glow-center-navy" aria-hidden="true"></div>
 <div class="saas-grid-pattern" aria-hidden="true"></div>
-""", unsafe_allow_html=True)
+""")
 
 
 # ---------------------------------------------------------
@@ -624,7 +622,6 @@ with st.sidebar:
 # ---------------------------------------------------------
 current_metrics = st.session_state.simulated_metrics.copy()
 
-# Add subtle telemetry fluctuations for realistic monitoring
 if st.session_state.chaos_state == "NORMAL":
     current_metrics["cpu_cores"] = max(0.02, round(current_metrics["cpu_cores"] + random.uniform(-0.008, 0.008), 4))
     current_metrics["memory_mb"] = max(50.0, round(current_metrics["memory_mb"] + random.uniform(-1.5, 1.5), 1))
@@ -655,9 +652,16 @@ is_anomaly = rca_report.get("is_anomaly", False)
 
 
 # ---------------------------------------------------------
-# Minimalist SaaS Header Bar (Matching AnomIQ Site Header)
+# Header Bar (Matching AnomIQ Header)
 # ---------------------------------------------------------
-st.markdown(f"""
+beacon_class = "beacon-rose" if is_anomaly else "beacon-cyan"
+cluster_name_short = st.session_state.selected_cluster.split(' ')[0]
+system_status_text = "P1 CRITICAL ANOMALY" if is_anomaly else "ALL SYSTEMS HEALTHY"
+system_status_bg = "rgba(244, 63, 94, 0.15)" if is_anomaly else "rgba(16, 185, 129, 0.15)"
+system_status_border = "#f43f5e" if is_anomaly else "#10b981"
+system_status_color = "#fb7185" if is_anomaly else "#34d399"
+
+st.html(f"""
 <header class="site-header">
     <div class="header-left">
         <div class="brand-icon-box">
@@ -674,20 +678,20 @@ st.markdown(f"""
     </div>
     <div style="display: flex; align-items: center; gap: 16px;">
         <div style="background: rgba(17, 24, 39, 0.7); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 6px 14px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
-            <span class="status-beacon-dot {'beacon-rose' if is_anomaly else 'beacon-cyan'}"></span>
-            <span>{st.session_state.selected_cluster.split(' ')[0]}</span>
+            <span class="status-beacon-dot {beacon_class}"></span>
+            <span>{cluster_name_short}</span>
         </div>
-        <div style="background: {'rgba(244, 63, 94, 0.15)' if is_anomaly else 'rgba(16, 185, 129, 0.15)'}; border: 1px solid {'#f43f5e' if is_anomaly else '#10b981'}; color: {'#fb7185' if is_anomaly else '#34d399'}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <span class="status-beacon-dot {'beacon-rose' if is_anomaly else 'beacon-emerald'}"></span>
-            <span>{'P1 CRITICAL ANOMALY' if is_anomaly else 'ALL SYSTEMS HEALTHY'}</span>
+        <div style="background: {system_status_bg}; border: 1px solid {system_status_border}; color: {system_status_color}; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+            <span class="status-beacon-dot {beacon_class}"></span>
+            <span>{system_status_text}</span>
         </div>
     </div>
 </header>
-""", unsafe_allow_html=True)
+""")
 
 
 # ---------------------------------------------------------
-# Tabbed Navigation (Clean, 3 Core Pages + Integrated Tools)
+# Tabbed Navigation (Clean, AnomIQ Style)
 # ---------------------------------------------------------
 tab_overview, tab_monitoring, tab_rca, tab_lab, tab_llm, tab_archive = st.tabs([
     "🌐 Overview",
@@ -700,111 +704,204 @@ tab_overview, tab_monitoring, tab_rca, tab_lab, tab_llm, tab_archive = st.tabs([
 
 
 # =========================================================
-# PAGE 1: OVERVIEW DASHBOARD
+# PAGE 1: OVERVIEW DASHBOARD (WITH REAL 3D HOLOGRAPHIC GLOBE)
 # =========================================================
 with tab_overview:
-    # Top Hero Grid: Left Hero Card (Infrastructure Mesh) + Right 3 KPI Cards
     col_hero_left, col_hero_right = st.columns([1.35, 1])
 
     with col_hero_left:
-        st.markdown(f"""
-        <div class="saas-card" style="min-height: 520px; display: flex; flex-direction: column; justify-content: space-between;">
+        # Status Badge & Heading
+        hero_badge_bg = "var(--status-rose-bg)" if is_anomaly else "var(--status-emerald-bg)"
+        hero_badge_border = "var(--status-rose-border)" if is_anomaly else "var(--status-emerald-border)"
+        hero_badge_color = "var(--status-rose-bright)" if is_anomaly else "var(--status-emerald-bright)"
+        hero_badge_beacon = "beacon-rose" if is_anomaly else "beacon-emerald"
+        hero_badge_title = "System Anomaly Detected" if is_anomaly else "Global Fleet Steady-State"
+
+        st.html(f"""
+        <div class="saas-card" style="padding-bottom: 8px; margin-bottom: 12px;">
             <div class="card-ambient-highlight"></div>
-            <div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                    <div style="background: {'var(--status-rose-bg)' if is_anomaly else 'var(--status-emerald-bg)'}; border: 1px solid {'var(--status-rose-border)' if is_anomaly else 'var(--status-emerald-border)'}; color: {'var(--status-rose-bright)' if is_anomaly else 'var(--status-emerald-bright)'}; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                        <span class="status-beacon-dot {'beacon-rose' if is_anomaly else 'beacon-emerald'}"></span>
-                        <span>{'System Anomaly Detected' if is_anomaly else 'Global Fleet Steady-State'}</span>
-                    </div>
-                </div>
-                <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 4px 0 6px;">Infrastructure Mesh</h1>
-                <p style="font-size: 14px; color: var(--text-secondary); margin: 0 0 16px;">
-                    AnomIQ is autonomously monitoring all Kubernetes services in real time across 128 nodes and 1,482 pods.
-                </p>
-            </div>
-
-            <!-- Visual Mesh Topology Map -->
-            <div style="background: rgba(6, 9, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 14px; padding: 22px; margin: 10px 0; text-align: center; position: relative; overflow: hidden;">
-                <div style="display: flex; justify-content: space-around; align-items: center; padding: 18px 0;">
-                    <div style="text-align: center;">
-                        <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);">
-                            <span style="font-size: 20px;">🌐</span>
-                        </div>
-                        <strong style="color: #fff; font-size: 13px;">API Gateway</strong>
-                        <div style="font-size: 11px; color: #38bdf8;">12ms · 48k rps</div>
-                    </div>
-                    <div style="color: rgba(56, 189, 248, 0.4); font-size: 18px;">━━ ⚡ ━━</div>
-                    <div style="text-align: center;">
-                        <div style="width: 50px; height: 50px; border-radius: 12px; background: {'rgba(244, 63, 94, 0.2)' if is_anomaly else 'rgba(56, 189, 248, 0.12)'}; border: 1px solid {'#f43f5e' if is_anomaly else 'rgba(56, 189, 248, 0.4)'}; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; box-shadow: {'0 0 20px rgba(244, 63, 94, 0.35)' if is_anomaly else 'none'};">
-                            <span style="font-size: 20px;">{'⚠️' if is_anomaly else '🛡️'}</span>
-                        </div>
-                        <strong style="color: {'#fb7185' if is_anomaly else '#fff'}; font-size: 13px;">checkout-gateway</strong>
-                        <div style="font-size: 11px; color: {'#f87171' if is_anomaly else '#38bdf8'};">{'4,280ms · High Latency' if is_anomaly else '22ms · Nominal'}</div>
-                    </div>
-                    <div style="color: rgba(56, 189, 248, 0.4); font-size: 18px;">━━ ⚡ ━━</div>
-                    <div style="text-align: center;">
-                        <div style="width: 50px; height: 50px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px;">
-                            <span style="font-size: 20px;">🗄️</span>
-                        </div>
-                        <strong style="color: #fff; font-size: 13px;">Database & Redis</strong>
-                        <div style="font-size: 11px; color: #34d399;">3ms · 99.8% hit</div>
-                    </div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div style="background: {hero_badge_bg}; border: 1px solid {hero_badge_border}; color: {hero_badge_color}; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                    <span class="status-beacon-dot {hero_badge_beacon}"></span>
+                    <span>{hero_badge_title}</span>
                 </div>
             </div>
+            <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 4px 0 6px;">Infrastructure Mesh</h1>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
+                AnomIQ is autonomously monitoring all Kubernetes services in real time across 128 nodes and 1,482 pods. Drag & rotate the interactive 3D Globe to inspect cluster topology.
+            </p>
+        </div>
+        """)
 
-            <!-- Region Status Quick Cards -->
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px;">
-                <div style="background: {'var(--status-rose-bg)' if is_anomaly else 'rgba(255, 255, 255, 0.03)'}; border: 1px solid {'var(--status-rose-border)' if is_anomaly else 'var(--border-subtle)'}; border-radius: 12px; padding: 12px 14px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-size: 12px; font-weight: 700; color: #fff;">US East</span>
-                        <span class="status-beacon-dot {'beacon-rose' if is_anomaly else 'beacon-cyan'}"></span>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-muted);">584 Pods · Latency {'428ms' if is_anomaly else '22ms'}</div>
-                </div>
+        # -----------------------------------------------------
+        # 3D HOLOGRAPHIC GLOBE COMPONENT (Real Client-Side Canvas)
+        # -----------------------------------------------------
+        us_status = 'critical' if is_anomaly else 'healthy'
+        us_color = '#f43f5e' if is_anomaly else '#10b981'
+        us_lat = '428ms' if is_anomaly else '22ms'
 
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-size: 12px; font-weight: 700; color: #fff;">EU Central</span>
-                        <span class="status-beacon-dot beacon-cyan"></span>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-muted);">462 Pods · Latency 34ms</div>
-                </div>
+        # Read globe.js content
+        globe_js_path = os.path.join(PROJECT_ROOT, "dashboard", "assets", "globe.js")
+        if os.path.exists(globe_js_path):
+            with open(globe_js_path, "r", encoding="utf-8") as f:
+                globe_js_code = f.read()
+        else:
+            globe_js_code = ""
 
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-size: 12px; font-weight: 700; color: #fff;">AP East</span>
-                        <span class="status-beacon-dot beacon-cyan"></span>
-                    </div>
-                    <div style="font-size: 11px; color: var(--text-muted);">436 Pods · Latency 41ms</div>
+        # Embed complete HTML5 Canvas 3D Globe
+        globe_component_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+          * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+          body, html {{
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #060913;
+            border-radius: 14px;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+          }}
+          #globeContainer {{
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+          }}
+          #globeContainer:active {{ cursor: grabbing; }}
+          canvas {{ width: 100%; height: 100%; display: block; }}
+          .globe-saas-tooltip {{
+            position: absolute;
+            width: 240px;
+            background: rgba(12, 17, 28, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.2);
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 50;
+            color: #fff;
+            font-size: 12px;
+            display: none;
+          }}
+          .globe-saas-tooltip.visible {{ display: block; opacity: 1; transform: scale(1); }}
+          .tooltip-top {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+          }}
+          .tooltip-cluster-name {{ font-weight: 700; color: #fff; font-size: 13px; }}
+          .tooltip-badge {{ font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }}
+          .badge-crit {{ background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }}
+          .badge-ok {{ background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }}
+          .tooltip-row {{ display: flex; justify-content: space-between; margin-bottom: 4px; color: #94a3b8; font-size: 11px; }}
+        </style>
+        </head>
+        <body>
+        <div id="globeContainer">
+          <canvas id="holoGlobeCanvas"></canvas>
+          <div class="globe-saas-tooltip" id="globeNodeTooltip">
+            <div class="tooltip-top">
+              <span class="tooltip-cluster-name" id="tooltipCluster">us-east-k8s-prod</span>
+              <span class="tooltip-badge badge-crit" id="tooltipStatus">P1 Active</span>
+            </div>
+            <div class="tooltip-row"><span>Region</span><strong id="tooltipRegion" style="color:#fff;">US East</strong></div>
+            <div class="tooltip-row"><span>Capacity</span><strong id="tooltipPods" style="color:#fff;">584 Pods</strong></div>
+            <div class="tooltip-row"><span>Latency P99</span><strong id="tooltipLatency" style="color:#38bdf8;">{us_lat}</strong></div>
+          </div>
+        </div>
+        <script>
+        {globe_js_code}
+
+        // Initialize engine with dynamic cluster health
+        window.addEventListener('DOMContentLoaded', () => {{
+          const engine = new HoloGlobeEngine('holoGlobeCanvas');
+          if (engine && engine.clusters && engine.clusters.length > 0) {{
+            engine.clusters[0].status = '{us_status}';
+            engine.clusters[0].color = '{us_color}';
+            engine.clusters[0].latency = '{us_lat}';
+          }}
+        }});
+        </script>
+        </body>
+        </html>
+        """
+        st.components.v1.html(globe_component_html, height=330)
+
+        # Region status quick cards below globe
+        us_card_bg = "var(--status-rose-bg)" if is_anomaly else "rgba(255, 255, 255, 0.03)"
+        us_card_border = "var(--status-rose-border)" if is_anomaly else "var(--border-subtle)"
+        us_card_beacon = "beacon-rose" if is_anomaly else "beacon-cyan"
+        us_card_lat = "428ms" if is_anomaly else "22ms"
+
+        st.html(f"""
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px;">
+            <div style="background: {us_card_bg}; border: 1px solid {us_card_border}; border-radius: 12px; padding: 12px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #fff;">US East</span>
+                    <span class="status-beacon-dot {us_card_beacon}"></span>
                 </div>
+                <div style="font-size: 11px; color: var(--text-muted);">584 Pods · Latency {us_card_lat}</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #fff;">EU Central</span>
+                    <span class="status-beacon-dot beacon-cyan"></span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">462 Pods · Latency 34ms</div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 12px; font-weight: 700; color: #fff;">AP East</span>
+                    <span class="status-beacon-dot beacon-cyan"></span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">436 Pods · Latency 41ms</div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with col_hero_right:
         # KPI 1: Active Incidents
-        st.markdown(f"""
+        kpi1_badge_class = "pill-rose" if is_anomaly else "pill-emerald"
+        kpi1_badge_text = "P1 Critical" if is_anomaly else "Zero Incidents"
+        kpi1_count = "1" if is_anomaly else "0"
+        kpi1_service = "checkout-gateway-svc" if is_anomaly else "fleet nominal"
+        kpi1_root = rca_report.get('root_cause', 'Nominal steady-state')
+        kpi1_link_color = "#fb7185" if is_anomaly else "#34d399"
+        kpi1_link_text = "Active Investigation →" if is_anomaly else "Healthy"
+
+        st.html(f"""
         <div class="saas-card kpi-clean-card">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-header-row">
                 <span class="kpi-label">Active Incidents</span>
-                <span class="kpi-pill-badge {'pill-rose' if is_anomaly else 'pill-emerald'}">
-                    {'P1 Critical' if is_anomaly else 'Zero Incidents'}
-                </span>
+                <span class="kpi-pill-badge {kpi1_badge_class}">{kpi1_badge_text}</span>
             </div>
             <div class="kpi-number-row">
-                <span class="kpi-value-huge">{'1' if is_anomaly else '0'}</span>
-                <span class="kpi-meta-text">{'checkout-gateway-svc' if is_anomaly else 'fleet nominal'}</span>
+                <span class="kpi-value-huge">{kpi1_count}</span>
+                <span class="kpi-meta-text">{kpi1_service}</span>
             </div>
             <div class="kpi-footer-row">
-                <span>{rca_report.get('root_cause', 'Nominal steady-state')}</span>
-                <strong style="color: {'#fb7185' if is_anomaly else '#34d399'};">{'Active Investigation →' if is_anomaly else 'Healthy'}</strong>
+                <span>{kpi1_root}</span>
+                <strong style="color: {kpi1_link_color};">{kpi1_link_text}</strong>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         # KPI 2: Detected Anomalies
-        st.markdown("""
+        st.html("""
         <div class="saas-card kpi-clean-card">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-header-row">
@@ -820,10 +917,10 @@ with tab_overview:
                 <strong style="color: #38bdf8;">98.4% Confidence</strong>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         # KPI 3: System Uptime
-        st.markdown("""
+        st.html("""
         <div class="saas-card kpi-clean-card">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-header-row">
@@ -839,17 +936,19 @@ with tab_overview:
                 <strong style="color: #34d399;">88.2% (38m remaining)</strong>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     # Bottom Row: AI Health Score + Telemetry Waveforms + Cluster Workloads
     col_b1, col_b2, col_b3 = st.columns([1, 1.4, 1.1])
 
     with col_b1:
-        # Radial AI Health Score
         health_num = 72.4 if is_anomaly else 94.2
         stroke_color = "#f43f5e" if is_anomaly else "#38bdf8"
         dash_offset = 69.1 if is_anomaly else 14.5
-        st.markdown(f"""
+        risk_color = "#fb7185" if is_anomaly else "#34d399"
+        risk_text = "Elevated (1 Service)" if is_anomaly else "Nominal"
+
+        st.html(f"""
         <div class="saas-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
             <div class="card-ambient-highlight"></div>
             <div class="card-header-clean">
@@ -881,16 +980,15 @@ with tab_overview:
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span>Current Anomaly Risk</span>
-                    <strong style="color: {'#fb7185' if is_anomaly else '#34d399'};">{'Elevated (1 Service)' if is_anomaly else 'Nominal'}</strong>
+                    <strong style="color: {risk_color};">{risk_text}</strong>
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with col_b2:
-        # Telemetry Waveforms Deck
-        st.markdown("""
-        <div class="saas-card" style="padding-bottom: 14px;">
+        st.html("""
+        <div class="saas-card" style="padding-bottom: 10px;">
             <div class="card-ambient-highlight"></div>
             <div class="card-header-clean">
                 <div>
@@ -900,7 +998,7 @@ with tab_overview:
                 <span class="status-beacon-dot beacon-cyan"></span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         fig_cpu = go.Figure()
         fig_cpu.add_trace(go.Scatter(
@@ -943,11 +1041,13 @@ with tab_overview:
         st.plotly_chart(fig_mem, width="stretch", key="overview_chart_mem")
 
     with col_b3:
-        # Cluster Workloads
         faulty_pods = 8 if is_anomaly else 0
         healthy_width = 95 if is_anomaly else 100
         faulty_width = 5 if is_anomaly else 0
-        st.markdown(f"""
+        nodes_degraded_text = '1 Degraded' if is_anomaly else 'Ready'
+        faulty_color = '#fb7185' if is_anomaly else '#34d399'
+
+        st.html(f"""
         <div class="saas-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
             <div class="card-ambient-highlight"></div>
             <div class="card-header-clean">
@@ -959,7 +1059,7 @@ with tab_overview:
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
                     <div style="font-size: 24px; font-weight: 800; color: #fff;">128</div>
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Nodes ({'1 Degraded' if is_anomaly else 'Ready'})</div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Nodes ({nodes_degraded_text})</div>
                 </div>
                 <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px;">
                     <div style="font-size: 24px; font-weight: 800; color: #fff;">1,482</div>
@@ -969,7 +1069,7 @@ with tab_overview:
             <div>
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px;">
                     <span>1,471 Running</span>
-                    <span style="color: {'#fb7185' if is_anomaly else '#34d399'};">{faulty_pods} CrashLoopBackOff</span>
+                    <span style="color: {faulty_color};">{faulty_pods} CrashLoopBackOff</span>
                 </div>
                 <div style="height: 7px; border-radius: 4px; background: rgba(255,255,255,0.06); display: flex; overflow: hidden;">
                     <div style="width: {healthy_width}%; background: var(--status-emerald);"></div>
@@ -987,24 +1087,24 @@ with tab_overview:
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
 
 # =========================================================
 # PAGE 2: MONITORING (CLUSTER DETAILS)
 # =========================================================
 with tab_monitoring:
-    st.markdown("""
+    st.html("""
     <div style="margin-bottom: 20px;">
         <h1 style="font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin: 0 0 4px;">Cluster Fleet & Workloads</h1>
         <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Real-time compute pressure, microservice health, and container runtime telemetry.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     # Top 4 Clean Stats Row
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     with col_m1:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 22px; border-radius: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Clusters</span>
@@ -1013,9 +1113,9 @@ with tab_monitoring:
             <div style="font-size: 28px; font-weight: 800; color: #fff;">4</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Across 4 global cloud regions</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_m2:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 22px; border-radius: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Active Nodes</span>
@@ -1024,9 +1124,9 @@ with tab_monitoring:
             <div style="font-size: 28px; font-weight: 800; color: #fff;">128</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">127 Ready · 1 Pressure</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_m3:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 22px; border-radius: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Monitored Pods</span>
@@ -1035,9 +1135,9 @@ with tab_monitoring:
             <div style="font-size: 28px; font-weight: 800; color: #fff;">1,482</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">99.2% healthy containers</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_m4:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 22px; border-radius: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Containers</span>
@@ -1046,7 +1146,7 @@ with tab_monitoring:
             <div style="font-size: 28px; font-weight: 800; color: #fff;">4,120</div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">containerd 1.7 runtime</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     # 16-Node Compute Pressure Matrix & Throughput
     col_mat_left, col_mat_right = st.columns([1, 1])
@@ -1055,13 +1155,14 @@ with tab_monitoring:
         for i in range(1, 17):
             is_node_pressure = (i == 8 and is_anomaly)
             load_pct = random.randint(84, 94) if is_node_pressure else random.randint(28, 62)
-            chips_html += f"""
-            <div class="node-chip-box {'pressure' if is_node_pressure else ''}">
-                <div class="node-chip-name">node-{i:02d}</div>
-                <div class="node-chip-load" style="color: {'#fb7185' if is_node_pressure else 'var(--text-muted)'};">{load_pct}%</div>
-            </div>
-            """
-        st.markdown(f"""
+            node_color = '#fb7185' if is_node_pressure else 'var(--text-muted)'
+            node_chip_class = "node-chip-box pressure" if is_node_pressure else "node-chip-box"
+            chips_html += f'<div class="{node_chip_class}"><div class="node-chip-name">node-{i:02d}</div><div class="node-chip-load" style="color: {node_color};">{load_pct}%</div></div>'
+
+        node_status_text = 'MemoryPressure' if is_anomaly else 'Ready'
+        node_status_color = '#fb7185' if is_anomaly else '#34d399'
+
+        st.html(f"""
         <div class="saas-card">
             <div class="card-ambient-highlight"></div>
             <div class="card-header-clean">
@@ -1076,13 +1177,13 @@ with tab_monitoring:
             <div style="display: flex; justify-content: space-between; font-size: 12px; background: rgba(0,0,0,0.3); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-subtle); color: var(--text-secondary);">
                 <span>Node: <strong style="color: #fff;">node-us-east-worker-08</strong></span>
                 <span>Load: CPU 84% · MEM 91%</span>
-                <span style="color: {'#fb7185' if is_anomaly else '#34d399'};">Status: {'MemoryPressure' if is_anomaly else 'Ready'}</span>
+                <span style="color: {node_status_color};">Status: {node_status_text}</span>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with col_mat_right:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding-bottom: 10px;">
             <div class="card-ambient-highlight"></div>
             <div class="card-header-clean">
@@ -1093,7 +1194,7 @@ with tab_monitoring:
                 <strong style="color: #38bdf8;">142,400 req/s</strong>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         fig_thru = go.Figure()
         fig_thru.add_trace(go.Scatter(
@@ -1114,7 +1215,13 @@ with tab_monitoring:
         st.plotly_chart(fig_thru, width="stretch", key="mon_chart_throughput")
 
     # Service Health Status Grid (6 Microservices)
-    st.markdown(f"""
+    checkout_card_class = "svc-card alert" if is_anomaly else "svc-card"
+    checkout_name_color = "#fb7185" if is_anomaly else "#fff"
+    checkout_beacon = "beacon-rose" if is_anomaly else "beacon-cyan"
+    checkout_latency_text = "4,280ms · High Latency" if is_anomaly else "22ms · Nominal"
+    checkout_latency_color = "#fb7185" if is_anomaly else "var(--text-muted)"
+
+    st.html(f"""
     <div class="service-health-grid">
         <div class="svc-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1132,12 +1239,12 @@ with tab_monitoring:
             <span class="svc-latency">6ms · 42k rps</span>
         </div>
 
-        <div class="svc-card {'alert' if is_anomaly else ''}">
+        <div class="{checkout_card_class}">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span class="svc-name" style="color: {'#fb7185' if is_anomaly else '#fff'};">Checkout Svc</span>
-                <span class="status-beacon-dot {'beacon-rose' if is_anomaly else 'beacon-cyan'}"></span>
+                <span class="svc-name" style="color: {checkout_name_color};">Checkout Svc</span>
+                <span class="status-beacon-dot {checkout_beacon}"></span>
             </div>
-            <span class="svc-latency" style="color: {'#fb7185' if is_anomaly else 'var(--text-muted)'};">{'4,280ms · High Latency' if is_anomaly else '22ms · Nominal'}</span>
+            <span class="svc-latency" style="color: {checkout_latency_color};">{checkout_latency_text}</span>
         </div>
 
         <div class="svc-card">
@@ -1164,10 +1271,10 @@ with tab_monitoring:
             <span class="svc-latency">4ms · 12 conns</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     # Kubernetes Fleet Pods Table
-    st.markdown("""
+    st.html("""
     <div class="saas-card">
         <div class="card-ambient-highlight"></div>
         <div class="card-header-clean">
@@ -1178,7 +1285,7 @@ with tab_monitoring:
             <span class="kpi-pill-badge pill-cyan">14 Replicas Monitored</span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     pod_table_data = [
         {"Pod Name": "checkout-gateway-78f9-xk8p", "Namespace": "payments", "Node": "node-08", "Status": "CrashLoopBackOff" if is_anomaly else "Running", "Restarts": 6 if is_anomaly else 0, "CPU": "92%", "Memory": "99.5%", "Age": "14m"},
@@ -1201,15 +1308,18 @@ with tab_rca:
     inc_root = rca_report.get("root_cause", "Payment Gateway Kernel Latency Spike & Pod OOMCascades")
     inc_mechanism = rca_report.get("mechanism", "Direct buffer memory leak triggered by uncollected channel buffers.")
     inc_risk = rca_report.get("imminent_risk", "Cascading pod OOMKills and checkout API failure.")
+    inc_badge_bg = "var(--status-rose-bg)" if is_anomaly else "var(--status-emerald-bg)"
+    inc_badge_color = "var(--status-rose-bright)" if is_anomaly else "var(--status-emerald-bright)"
+    inc_badge_border = "var(--status-rose-border)" if is_anomaly else "var(--status-emerald-border)"
 
     # Incident Master Banner
-    st.markdown(f"""
+    st.html(f"""
     <div class="saas-card" style="padding: 28px; margin-bottom: 24px;">
         <div class="card-ambient-highlight"></div>
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div style="max-width: 70%;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; background: {'var(--status-rose-bg)' if is_anomaly else 'var(--status-emerald-bg)'}; color: {'var(--status-rose-bright)' if is_anomaly else 'var(--status-emerald-bright)'}; border: 1px solid {'var(--status-rose-border)' if is_anomaly else 'var(--status-emerald-border)'};">
+                    <span style="font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; background: {inc_badge_bg}; color: {inc_badge_color}; border: 1px solid {inc_badge_border};">
                         {inc_severity} · {inc_id}
                     </span>
                     <span class="kpi-pill-badge pill-cyan">checkout-gateway-svc</span>
@@ -1227,10 +1337,14 @@ with tab_rca:
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
-    # VISUAL AI INTELLIGENCE PIPELINE (Connected Step Flow)
-    st.markdown(f"""
+    # Connected 4-Step AI Pipeline Track
+    current_anom_cat = current_metrics.get('anomaly_type', rca_report.get('anomaly_type', 'anomaly')).upper()
+    lat_val_p95 = current_metrics.get('p95_latency_ms', 0)
+    mem_val_curr = current_metrics.get('memory_mb', 0)
+
+    st.html(f"""
     <div class="ai-pipeline-track">
         <!-- Step 1: Anomaly -->
         <div class="pipeline-step-card">
@@ -1241,7 +1355,7 @@ with tab_rca:
             </div>
             <div class="step-stage-name">Detected Anomaly</div>
             <p class="step-stage-desc">
-                {current_metrics.get('anomaly_type', rca_report.get('anomaly_type', 'anomaly')).upper()}: P99 latency deteriorated to {current_metrics.get('p95_latency_ms', 0):.1f}ms. Replicas failing probes.
+                {current_anom_cat}: P99 latency deteriorated to {lat_val_p95:.1f}ms. Replicas failing probes.
             </p>
         </div>
 
@@ -1254,7 +1368,7 @@ with tab_rca:
             </div>
             <div class="step-stage-name">Correlated Evidence</div>
             <p class="step-stage-desc">
-                Resident memory slope jumped to {current_metrics.get('memory_mb', 0):.1f}MB. eBPF intercepted kernel OOM signals.
+                Resident memory slope jumped to {mem_val_curr:.1f}MB. eBPF intercepted kernel OOM signals.
             </p>
         </div>
 
@@ -1284,9 +1398,9 @@ with tab_rca:
             </p>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
-    # RCA Details Split: Runbook & Architectural Fixes + Log Terminal
+    # Runbook & Logs
     col_rca_l, col_rca_r = st.columns([1.1, 0.9])
 
     with col_rca_l:
@@ -1307,28 +1421,29 @@ with tab_rca:
 
     with col_rca_r:
         st.markdown("#### 📜 **Correlated Container Logs**")
-        st.markdown(f"""
+        mem_mb_val = current_metrics.get('memory_mb', 140)
+        st.html(f"""
         <div class="clean-log-terminal">
             <div class="clean-log-line info">[io.netty.bootstrap] Started HTTP microservice on port :8080</div>
             <div class="clean-log-line info">[payments.router] Ingress batch processing active #89104</div>
-            <div class="clean-log-line warn">[io.netty.buffer] Memory RSS climbing: {current_metrics.get('memory_mb', 140):.1f}MB / 512MB limit</div>
+            <div class="clean-log-line warn">[io.netty.buffer] Memory RSS climbing: {mem_mb_val:.1f}MB / 512MB limit</div>
             <div class="clean-log-line culprit">java.lang.OutOfMemoryError: Java heap space [NettyEpollWorker-4-8]</div>
             <div class="clean-log-line error">[kubelet] Container checkout-gateway failed liveness probe, restarting...</div>
             <div class="clean-log-line error">[starlette.middleware] HTTP 504 Gateway Timeout while waiting for pod response</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
 
 # =========================================================
 # PAGE 4: INTERACTIVE AI DIAGNOSTIC LAB
 # =========================================================
 with tab_lab:
-    st.markdown("""
+    st.html("""
     <div style="margin-bottom: 20px;">
         <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px;">Interactive AI Diagnostic Lab</h1>
         <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Adjust telemetry sliders and error logs manually to test the Anomaly Detector and Qwen2 RCA live.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     col_l1, col_l2 = st.columns(2)
     with col_l1:
@@ -1383,13 +1498,15 @@ with tab_lab:
 
         st.success(f"Diagnosis Complete! Incident Tag: {diag_res['incident_id']}")
 
-        # Show Output Box
         d_anom = diag_res["is_anomaly"]
-        st.markdown(f"""
-        <div class="saas-card" style="border-color: {'var(--status-rose-border)' if d_anom else 'var(--status-emerald-border)'};">
+        diag_border = "var(--status-rose-border)" if d_anom else "var(--status-emerald-border)"
+        diag_class_color = "#fb7185" if d_anom else "#34d399"
+
+        st.html(f"""
+        <div class="saas-card" style="border-color: {diag_border};">
             <div class="card-ambient-highlight"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: 800; color: {'#fb7185' if d_anom else '#34d399'};">
+                <span style="font-weight: 800; color: {diag_class_color};">
                     CLASSIFICATION: {diag_res['anomaly_type'].upper()} ({diag_res.get('severity', 'LOW')} SEVERITY)
                 </span>
                 <span style="font-size: 13px; color: #94a3b8;">Confidence: {diag_res.get('confidence', 1.0):.2f}</span>
@@ -1400,7 +1517,7 @@ with tab_lab:
                 <strong>Imminent Risk:</strong> {diag_res.get('imminent_risk')}
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         col_lr1, col_lr2 = st.columns(2)
         with col_lr1:
@@ -1417,50 +1534,50 @@ with tab_lab:
 # PAGE 5: LLM ARCHITECTURE & CHATML INSPECTOR
 # =========================================================
 with tab_llm:
-    st.markdown("""
+    st.html("""
     <div style="margin-bottom: 20px;">
         <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px;">Fine-Tuned LLM & ChatML Architecture</h1>
         <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Inspection of the Qwen2-7B fine-tuned causal model weights and ChatML formatting.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     col_w1, col_w2, col_w3, col_w4 = st.columns(4)
     with col_w1:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 20px;">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-label">Base Model</div>
             <div style="font-size: 24px; font-weight: 800; color: #38bdf8; margin: 4px 0;">Qwen2-7B</div>
             <div style="font-size: 12px; color: var(--text-muted);">Causal Language Model</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_w2:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 20px;">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-label">Parameters</div>
             <div style="font-size: 24px; font-weight: 800; color: #818cf8; margin: 4px 0;">7.61 Billion</div>
             <div style="font-size: 12px; color: var(--text-muted);">28 Layers · 3584 Hidden</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_w3:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 20px;">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-label">Context Window</div>
             <div style="font-size: 24px; font-weight: 800; color: #c084fc; margin: 4px 0;">32,768</div>
             <div style="font-size: 12px; color: var(--text-muted);">Full Sequence Tokens</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
     with col_w4:
-        st.markdown("""
+        st.html("""
         <div class="saas-card" style="padding: 18px 20px;">
             <div class="card-ambient-highlight"></div>
             <div class="kpi-label">Model Weights</div>
             <div style="font-size: 24px; font-weight: 800; color: #34d399; margin: 4px 0;">15.2 GB</div>
             <div style="font-size: 12px; color: var(--text-muted);">4 Shards (SafeTensors)</div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
     st.markdown("#### 💬 **Live ChatML Prompt Generation Inspector**")
     prompt_sample = engine.llm.build_chatml_prompt(
@@ -1489,12 +1606,12 @@ with tab_llm:
 # PAGE 6: INCIDENT POST-MORTEM ARCHIVE & EMAIL ALERTS
 # =========================================================
 with tab_archive:
-    st.markdown("""
+    st.html("""
     <div style="margin-bottom: 20px;">
         <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px;">Incident Post-Mortems & SRE Alerts</h1>
         <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Audit trail of all autonomous RCA reports and HTML notification alerts.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
     col_em1, col_em2 = st.columns([1, 1])
 
