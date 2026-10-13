@@ -26,7 +26,7 @@ from telemetry.email_dispatcher import EmailAlertDispatcher
 # Page Configuration & Metadata
 # ---------------------------------------------------------
 st.set_page_config(
-    page_title="AnomIQ — Autonomous AIOps Intelligence",
+    page_title="IOPS — Autonomous AIOps Intelligence",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -754,7 +754,7 @@ if "chat_history" not in st.session_state:
 # Sidebar: Alert Email Settings & Chaos Fault Lab
 # ---------------------------------------------------------
 with st.sidebar:
-    st.markdown("### 🌐 **AnomIQ Cluster Fleet**")
+    st.markdown("### 🌐 **IOPS Cluster Fleet**")
     cluster_selection = st.selectbox(
         "Active Kubernetes Mesh",
         [
@@ -983,8 +983,8 @@ st.html(f"""
             </svg>
         </div>
         <div>
-            <div class="brand-name">Anom<span class="brand-highlight">IQ</span></div>
-            <div class="brand-tagline">Detect · Diagnose · Recover</div>
+            <div class="brand-name">IO<span class="brand-highlight">PS</span></div>
+            <div class="brand-tagline">Eye on everything</div>
         </div>
     </div>
     <div style="display: flex; align-items: center; gap: 12px;">
@@ -1055,7 +1055,7 @@ with tab_overview:
             </div>
             <h1 style="font-size: 24px; font-weight: 800; color: #fff; margin: 4px 0 6px;">Infrastructure Mesh</h1>
             <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
-                AnomIQ is autonomously monitoring all Kubernetes services in real time across {cluster_inventory['nodes_count']} node and {cluster_inventory['total_pods']} real pods ({cluster_inventory['workload_pods']} workload, {cluster_inventory['total_pods'] - cluster_inventory['workload_pods']} telemetry stack). Drag & rotate the interactive 3D Globe to inspect cluster topology.
+                IOPS is autonomously monitoring all Kubernetes services in real time across {cluster_inventory['nodes_count']} node and {cluster_inventory['total_pods']} real pods ({cluster_inventory['workload_pods']} workload, {cluster_inventory['total_pods'] - cluster_inventory['workload_pods']} telemetry stack). Drag & rotate the interactive 3D Globe to inspect cluster topology.
             </p>
         </div>
         """)

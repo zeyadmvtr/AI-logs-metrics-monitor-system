@@ -1,5 +1,5 @@
 /**
- * AnomIQ — 3D Infrastructure Holographic Globe & Network Engine
+ * IOPS — 3D Infrastructure Holographic Globe & Network Engine
  * Clean, modern AI SaaS visual direction:
  * Deep navy sphere, luminous cyan & electric blue particles, subtle glowing flight arcs.
  */
