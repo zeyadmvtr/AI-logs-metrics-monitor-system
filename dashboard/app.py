@@ -2045,6 +2045,7 @@ with tab_archive:
     with col_em1:
         st.markdown("#### 📁 **Incident Post-Mortem Audit Archive**")
         reports_dir = os.path.join(PROJECT_ROOT, "data", "rca_reports")
+        os.makedirs(reports_dir, exist_ok=True)
         report_files = sorted(glob.glob(os.path.join(reports_dir, "INC-*.md")), reverse=True)
         if report_files:
             chosen_file = st.selectbox("Select Incident Post-Mortem:", report_files, format_func=lambda x: f"📄 {os.path.basename(x)}")
