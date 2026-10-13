@@ -6,6 +6,7 @@ import glob
 import random
 import subprocess
 import requests
+import base64
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -16,6 +17,17 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+# Brand Logo Configuration
+LOGO_PATH = os.path.join(PROJECT_ROOT, "dashboard", "assets", "eye_logo.png")
+LOGO_SQUARE_PATH = os.path.join(PROJECT_ROOT, "dashboard", "assets", "eye_logo_square.png")
+LOGO_B64 = ""
+if os.path.exists(LOGO_PATH):
+    try:
+        with open(LOGO_PATH, "rb") as _f:
+            LOGO_B64 = f"data:image/png;base64,{base64.b64encode(_f.read()).decode('utf-8')}"
+    except Exception:
+        LOGO_B64 = ""
+
 from telemetry.config import get_telemetry_settings
 from telemetry.anomaly_detector import AnomalyDetector
 from telemetry.llm_inference import LLMRCAInference
@@ -25,9 +37,10 @@ from telemetry.email_dispatcher import EmailAlertDispatcher
 # ---------------------------------------------------------
 # Page Configuration & Metadata
 # ---------------------------------------------------------
+page_icon_setting = LOGO_SQUARE_PATH if os.path.exists(LOGO_SQUARE_PATH) else "🛡️"
 st.set_page_config(
     page_title="IOPS — Autonomous AIOps Intelligence",
-    page_icon="🛡️",
+    page_icon=page_icon_setting,
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -154,15 +167,31 @@ st.html("""
         gap: 18px;
     }
     .brand-icon-box {
-        width: 42px;
-        height: 42px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(139, 92, 246, 0.3));
-        border: 1px solid rgba(56, 189, 248, 0.4);
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(139, 92, 246, 0.28));
+        border: 1px solid rgba(56, 189, 248, 0.45);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.25), inset 0 0 12px rgba(56, 189, 248, 0.1);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .brand-icon-box:hover {
+        border-color: rgba(56, 189, 248, 0.7);
+        box-shadow: 0 0 25px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .brand-logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+        transition: transform 0.3s ease;
+    }
+    .brand-icon-box:hover .brand-logo-img {
+        transform: scale(1.08);
     }
     .brand-name {
         font-size: 22px;
@@ -754,6 +783,18 @@ if "chat_history" not in st.session_state:
 # Sidebar: Alert Email Settings & Chaos Fault Lab
 # ---------------------------------------------------------
 with st.sidebar:
+    if LOGO_B64:
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding: 10px 14px; border-radius: 12px; background: rgba(12, 16, 27, 0.7); border: 1px solid rgba(56, 189, 248, 0.25);">
+            <div class="brand-icon-box" style="width: 38px; height: 38px; min-width: 38px;">
+                <img src="{LOGO_B64}" class="brand-logo-img" style="width: 28px; height: 28px;" alt="IOPS Eye">
+            </div>
+            <div>
+                <div style="font-size: 17px; font-weight: 800; color: #fff; line-height: 1.1;">IO<span class="brand-highlight">PS</span></div>
+                <div style="font-size: 10px; color: #94a3b8; font-weight: 500;">Eye on everything</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     st.markdown("### 🌐 **IOPS Cluster Fleet**")
     cluster_selection = st.selectbox(
         "Active Kubernetes Mesh",
@@ -972,15 +1013,21 @@ system_status_bg = "rgba(244, 63, 94, 0.15)" if is_anomaly else "rgba(16, 185, 1
 system_status_border = "#f43f5e" if is_anomaly else "#10b981"
 system_status_color = "#fb7185" if is_anomaly else "#34d399"
 
+brand_icon_html = (
+    f'<img src="{LOGO_B64}" class="brand-logo-img" alt="IOPS Eye">'
+    if LOGO_B64
+    else """<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+        <path d="M2 17l10 5 10-5"></path>
+        <path d="M2 12l10 5 10-5"></path>
+    </svg>"""
+)
+
 st.html(f"""
 <header class="site-header">
     <div class="header-left">
         <div class="brand-icon-box">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                <path d="M2 17l10 5 10-5"></path>
-                <path d="M2 12l10 5 10-5"></path>
-            </svg>
+            {brand_icon_html}
         </div>
         <div>
             <div class="brand-name">IO<span class="brand-highlight">PS</span></div>
